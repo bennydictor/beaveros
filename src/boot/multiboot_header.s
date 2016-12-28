@@ -1,5 +1,5 @@
 .section .multiboot_header
-# Read Multiboot 2 specification at http://www.gnu.org/software/grub/manual/multiboot/multiboot.html
+# See Multiboot 2 specification at http://nongnu.askapache.com/grub/phcoder/multiboot.pdf
 header_start:
     .set magic, 0xe85250d6
     .set arch, 0
