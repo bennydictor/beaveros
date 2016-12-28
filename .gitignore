@@ -3,3 +3,4 @@ iso
 .bmake
 beaveros.bin
 beaveros.iso
+.ycm*
