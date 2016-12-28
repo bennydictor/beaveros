@@ -6,7 +6,7 @@ OBJ						:= obj
 ISO						:= iso
 
 CC						:= i686-elf-gcc
-CFLAGS					:= -std=c99 -pipe -Wall -Wextra -Wshadow -ffreestanding
+CFLAGS					:= -std=c99 -pipe -Wall -Wextra -Wshadow -ffreestanding 
 
 AS          			:= i686-elf-as
 ASFLAGS     			:=
@@ -106,7 +106,8 @@ $(KERNEL): $(OBJS) | .bmake
 $(OBJ)/%.c.o: $(SRC)/%.c | $$(@D) $$(patsubst $(OBJ)$$(PERCENT),.bmake$$(PERCENT),$$(@D))
 	$(CCCOMPILE) -c $< -o $@
 	@echo $(CCCOMPILE) >.bmake/$*.c.b
-	@$(CCCOMPILE) -M $< | sed -E 's/^$*.o/$(OBJ)\/$*.c.o/' >.bmake/$*.c.d
+	@$(CCCOMPILE) -M $< | sed -E 's:^$*.o:$(OBJ)/$*.c.o:' >.bmake/$*.c.d
+#	@$(CCCOMPILE) -M $< | sed -E 's/^$*.o/$(OBJ)\/$*.c.o/' >.bmake/$*.c.d
 
 $(OBJ)/%.s.o: $(SRC)/%.s | $$(@D) $$(patsubst $(OBJ)$$(PERCENT),.bmake$$(PERCENT),$$(@D))
 	$(ASCOMPILE) $< -o $@

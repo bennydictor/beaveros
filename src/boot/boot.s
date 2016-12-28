@@ -10,8 +10,18 @@ start:
             movl    $message_length,    %ecx
             shrl    $1,                 %ecx
             rep     movsw
+
+            movl    $stack_top,         %esp
+
+            cli
+            call kernel_main
 .Lhlt:      hlt
             jmp     .Lhlt
+
+.section    .bss
+stack_bottom:
+            .space 16 * 1024
+stack_top:
 
 .section    .rodata
 message:

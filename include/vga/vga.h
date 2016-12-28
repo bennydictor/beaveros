@@ -8,6 +8,7 @@ typedef enum {
     COLOR_BLUE,
     COLOR_GREEN,
     COLOR_CYAN,
+    COLOR_RED,
     COLOR_MAGENTA,
     COLOR_BROWN,
     COLOR_LIGHT_GREY,
@@ -16,6 +17,7 @@ typedef enum {
     COLOR_LIGHT_GREEN,
     COLOR_LIGHT_CYAN,
     COLOR_LIGHT_RED,
+    COLOR_LIGHT_MAGENTA,
     COLOR_YELLOW,
     COLOR_WHITE,
 } vga_color_t;

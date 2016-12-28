@@ -43,8 +43,7 @@ void vga_init(void) {
     vga_buffer = (uint16_t *)0xb8000;
     vga_width = 80;
     vga_height = 25;
-    vga_set_background(COLOR_BLACK);
-    vga_set_foreground(COLOR_WHITE);
+    vga_set_color(COLOR_BLACK << 4 | COLOR_WHITE);
     vga_clear();
     vga_move_cursor(0, 0);
 }

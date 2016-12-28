@@ -10,4 +10,4 @@ typedef   signed short  int16_t;
 typedef unsigned char   uint8_t;
 typedef   signed char   int8_t;
 
-#endif 
+#endif // __BEAVER_COMMON_TYPES_H__
