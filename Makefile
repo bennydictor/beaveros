@@ -119,6 +119,9 @@ $(OBJ_TREE):
 $(MAKE_TREE):
 	@mkdir -p $@
 
+run: $(IMAGE)
+	@qemu-system-x86_64 -cdrom $(IMAGE)
+
 clean:
 	rm -rf $(KERNEL) $(IMAGE) $(OBJ) $(ISO)
 	@rm -rf .bmake
