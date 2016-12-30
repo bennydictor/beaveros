@@ -1,7 +1,10 @@
 #include <io/printf.h>
+#include <io/printf_subroutines.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <io/stddev.h>
+#include <common/string.h>
+#include <stddef.h>
 
 uint16_t io_internal_atoi(const char **str) {
     uint16_t ans = 0;
@@ -14,7 +17,8 @@ uint16_t io_internal_atoi(const char **str) {
 }
 
 // Format specifier structure: %[flags][width][.precision][length]specifier
-io_printf_format_specifier_t io_parse_format_specifier(const char *format, va_list vlist) {
+io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr, va_list vlist) {
+    const char *format = *format_ptr;
     io_printf_format_specifier_t ans;
     ans.flags = 0;
     
@@ -58,6 +62,7 @@ io_printf_format_specifier_t io_parse_format_specifier(const char *format, va_li
     ans.precision = 0;
     if (*format == '.') {
         ++format;
+        ans.flags |= IO_PRINTF_FLAG_PRECISION_SPECIFIED;
         if (*format == '*') {
             ans.precision = va_arg(vlist, int);
             ++format;
@@ -83,7 +88,15 @@ io_printf_format_specifier_t io_parse_format_specifier(const char *format, va_li
         }
     }
     
-    if 
+    if (strchr("diuoxXfFeEgGaAcspn%", *format) != NULL) {
+        ans.specifier = *format++;
+    } else {
+        ans.specifier = '!';
+        ans.flags |= IO_PRINTF_FLAG_PARSE_ERROR;
+    }
+
+    *format_ptr = format;
+    return ans;
 }
 
 int io_printf(const char *format, ...) {
@@ -107,5 +120,23 @@ int io_vprintf(const char *format, va_list vlist) {
 }
 
 int io_vdprintf(const ocdev_t ocdev, const char *format, va_list vlist) {
+    while (*format) {
+        if (*format == '%') {
+            io_printf_format_specifier_t spec = io_parse_format_specifier(&format, vlist);
+            switch (spec.specifier) {
+                case 'd':
+                case 'i':
+                {
+                    io_printf_subroutine_d(ocdev, spec, vlist);
+                    break;
+                }
+                default:
+                    ocdev.puts("<Not-Implemented-Yet>");
+                    break;
+            }
+        } else {
+            ocdev.putc(*format++);
+        }
+    }
     return 0;
 }

@@ -17,6 +17,7 @@ typedef struct {
 #define IO_PRINTF_FLAG_SPACE (4)
 #define IO_PRINTF_FLAG_SHARP (8)
 #define IO_PRINTF_FLAG_ZERO (16)
+#define IO_PRINTF_FLAG_PRECISION_SPECIFIED (32)
 #define IO_PRINTF_FLAG_PARSE_ERROR (INT8_MIN)
 
 #define IO_PRINTF_LENGTH_none (0)
@@ -26,7 +27,7 @@ typedef struct {
 #define IO_PRINTF_LENGTH_ll (4)
 // j, z, t and L are just fucked up
 
-io_printf_format_specifier_t io_parse_format_specifier(const char *format, va_list vlist);
+io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr, va_list vlist);
 
 int io_vprintf(const char *format, va_list vlist);
 int io_vdprintf(const ocdev_t ocdev, const char *format, va_list vlist);

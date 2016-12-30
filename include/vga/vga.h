@@ -28,6 +28,7 @@ void vga_init(void);
 void vga_putc(char c);
 void vga_clear(void);
 void vga_puts(const char *str);
+void vga_putsl(const char *str, uint32_t length);
 
 void vga_move_cursor(uint16_t x, uint16_t y);
 uint16_t vga_get_x(void);

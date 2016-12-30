@@ -4,6 +4,6 @@
 #include <stdint.h>
 
 uint32_t strlen(const char *str);
-char *strchr(const char *str, int character);
+const char *strchr(const char *str, int character);
 
 #endif // BEAVER_COMMON_STRING_H
