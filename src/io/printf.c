@@ -72,6 +72,7 @@ io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr, 
     }
 
     // Length
+    ans.length = IO_PRINTF_LENGTH_none;
     if (*format == 'h') {
         ++format;
         ans.length = IO_PRINTF_LENGTH_h;

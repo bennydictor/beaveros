@@ -9,5 +9,4 @@ void kernel_main(void) {
     io_set_std_ocdev(vga_get_ocdev());
 
     io_printf("\n\n>>> Hello world! This shit works! %05d\n", 123);
-    io_printf("\n\n>>> Hello world! This shit works! %05d\n", 123);
 }
