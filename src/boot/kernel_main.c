@@ -1,5 +1,6 @@
 #include <vga/vga.h>
 #include <io/stddev.h>
+#include <io/printf.h>
 
 void kernel_main(void) {
     vga_init();
@@ -7,5 +8,6 @@ void kernel_main(void) {
 
     io_set_std_ocdev(vga_get_ocdev());
 
-    vga_puts("\n\n>>> Hello world!");
+    io_printf("\n\n>>> Hello world! This shit works! %05d\n", 123);
+    io_printf("\n\n>>> Hello world! This shit works! %05d\n", 123);
 }
