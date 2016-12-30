@@ -131,6 +131,11 @@ int io_vdprintf(const ocdev_t ocdev, const char *format, va_list vlist) {
                     io_printf_subroutine_d(ocdev, spec, vlist);
                     break;
                 }
+                case 'u':
+                {
+                    io_printf_subroutine_u(ocdev, spec, vlist);
+                    break;
+                }
                 default:
                     ocdev.puts("<Not-Implemented-Yet>");
                     break;
