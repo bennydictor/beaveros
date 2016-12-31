@@ -120,22 +120,25 @@ int io_vprintf(const char *format, va_list vlist) {
     return io_vdprintf(io_get_std_ocdev(), format, vlist);
 }
 
+#define CASE_SUBROUTINE(symbol, suffix) \
+    case symbol : \
+        io_printf_subroutine_##suffix (ocdev, spec, vlist); \
+        break; 
+
 int io_vdprintf(const ocdev_t ocdev, const char *format, va_list vlist) {
     while (*format) {
         if (*format == '%') {
             io_printf_format_specifier_t spec = io_parse_format_specifier(&format, vlist);
             switch (spec.specifier) {
-                case 'd':
-                case 'i':
-                {
-                    io_printf_subroutine_d(ocdev, spec, vlist);
+                CASE_SUBROUTINE('d', d);
+                CASE_SUBROUTINE('i', i);
+                CASE_SUBROUTINE('u', u);
+                CASE_SUBROUTINE('o', o);
+                CASE_SUBROUTINE('x', x);
+                CASE_SUBROUTINE('X', X);
+                case '%': // The simpliest subroutine
+                    ocdev.putc('%');
                     break;
-                }
-                case 'u':
-                {
-                    io_printf_subroutine_u(ocdev, spec, vlist);
-                    break;
-                }
                 default:
                     ocdev.puts("<Not-Implemented-Yet>");
                     break;
