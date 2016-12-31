@@ -6,7 +6,7 @@ OBJ						:= obj
 ISO						:= iso
 
 CC						:= i686-elf-gcc
-CFLAGS					:= -std=c99 -pipe -Wall -Wextra -Wshadow -ffreestanding 
+CFLAGS					:= -std=c99 -pipe -Wall -Wextra -Wshadow -ffreestanding -Wno-unused-variable 
 
 AS          			:= i686-elf-as
 ASFLAGS     			:=

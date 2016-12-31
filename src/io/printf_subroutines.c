@@ -2,20 +2,27 @@
 #include <common/math.h>
 #include <common/string.h>
 
-#define INIT_PRINTF_SUBROUTINE(uppercase) \
+
+#define INIT_PRINTF_SUBROUTINE \
     bool left_justify = spec.flags & IO_PRINTF_FLAG_MINUS; \
     bool forced_sign = spec.flags & IO_PRINTF_FLAG_PLUS; \
     bool space_for_sign = spec.flags & IO_PRINTF_FLAG_SPACE; \
     bool use_prefix = spec.flags & IO_PRINTF_FLAG_SHARP; \
     bool pad_with_zeroes = spec.flags & IO_PRINTF_FLAG_ZERO; \
-    bool precision_specified = spec.flags & IO_PRINTF_FLAG_PRECISION_SPECIFIED; \
+    bool precision_specified = spec.flags & IO_PRINTF_FLAG_PRECISION_SPECIFIED; 
+
+#define INIT_DIGITS(uppercase) \
     const char *DIGITS = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
 
 #define BUF_SIZE 25
 
+#define PRINTER_HEADER(suffix, type) \
+bool io_internal_print_##suffix (ocdev_t ocdev, io_printf_format_specifier_t spec, type d)
+
 #define INTEGER_PRINTER(suffix, type, base, prefix, uppercase) \
-bool io_internal_print_##suffix (ocdev_t ocdev, io_printf_format_specifier_t spec, type d) { \
-    INIT_PRINTF_SUBROUTINE(uppercase); \
+PRINTER_HEADER(suffix, type) { \
+    INIT_PRINTF_SUBROUTINE; \
+    INIT_DIGITS(uppercase); \
     char buf[BUF_SIZE]; \
     buf[BUF_SIZE - 1] = 0; \
     char sign_c = 0; \
@@ -74,8 +81,11 @@ GEN_PRINTERS(h, 16, unsigned, "0x", false);
 GEN_PRINTERS(H, 16, unsigned, "0X", true);
 
 
+#define SUBROUTINE_HEADER(suffix) \
+bool io_printf_subroutine_##suffix (ocdev_t ocdev, io_printf_format_specifier_t spec, va_list vlist)
+
 #define GEN_SUBROUTINE(subroutine_suffix, printer_type) \
-bool io_printf_subroutine_##subroutine_suffix (ocdev_t ocdev, io_printf_format_specifier_t spec, va_list vlist) { \
+SUBROUTINE_HEADER(subroutine_suffix) { \
     switch (spec.length) { \
         case IO_PRINTF_LENGTH_none: \
             return io_internal_print_##printer_type##_int(ocdev, spec, va_arg(vlist, int)); \
@@ -92,8 +102,33 @@ bool io_printf_subroutine_##subroutine_suffix (ocdev_t ocdev, io_printf_format_s
 } \
 
 GEN_SUBROUTINE(d, s);
-bool io_printf_subroutine_i(ocdev_t, io_printf_format_specifier_t, va_list) __attribute__ ((alias("io_printf_subroutine_d")));
+SUBROUTINE_HEADER(i) __attribute__ ((alias("io_printf_subroutine_d")));
 GEN_SUBROUTINE(u, u);
 GEN_SUBROUTINE(o, o);
 GEN_SUBROUTINE(x, h);
 GEN_SUBROUTINE(X, H);
+
+PRINTER_HEADER(string, char *) {
+    INIT_PRINTF_SUBROUTINE;
+    uint32_t len = strlen(d);
+    uint32_t chars = precision_specified ? min(len, spec.precision) : len;
+    if (!left_justify) {
+        for (uint32_t i = chars; i < spec.width; ++i) {
+            ocdev.putc(' ');
+        }
+    }
+    ocdev.putsl(d, chars);
+    if (left_justify) {
+        for (uint32_t i = chars; i < spec.width; ++i) {
+            ocdev.putc(' ');
+        }
+    }
+    return true;
+}
+
+SUBROUTINE_HEADER(s) {
+    if (spec.length == IO_PRINTF_LENGTH_none) {
+        return io_internal_print_string(ocdev, spec, va_arg(vlist, char *));
+    }
+    return false;
+}

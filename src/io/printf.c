@@ -136,6 +136,7 @@ int io_vdprintf(const ocdev_t ocdev, const char *format, va_list vlist) {
                 CASE_SUBROUTINE('o', o);
                 CASE_SUBROUTINE('x', x);
                 CASE_SUBROUTINE('X', X);
+                CASE_SUBROUTINE('s', s);
                 case '%': // The simpliest subroutine
                     ocdev.putc('%');
                     break;
