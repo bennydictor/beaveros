@@ -17,14 +17,14 @@ uint16_t io_internal_atoi(const char **str) {
 }
 
 // Format specifier structure: %[flags][width][.precision][length]specifier
-io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr, va_list vlist) {
+io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr, va_list *vlist_ptr) {
     const char *format = *format_ptr;
     io_printf_format_specifier_t ans;
     ans.flags = 0;
-    
+
     // Flags
     bool are_there_flags = true;
-    
+
     while (are_there_flags) {
         ++format;
         switch (*format) {
@@ -52,7 +52,7 @@ io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr, 
     // Width
     ans.width = 0;
     if (*format == '*') {
-        ans.width = va_arg(vlist, int);
+        ans.width = va_arg(*vlist_ptr, int);
         ++format;
     } else {
         ans.width = io_internal_atoi(&format);
@@ -64,7 +64,7 @@ io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr, 
         ++format;
         ans.flags |= IO_PRINTF_FLAG_PRECISION_SPECIFIED;
         if (*format == '*') {
-            ans.precision = va_arg(vlist, int);
+            ans.precision = va_arg(*vlist_ptr, int);
             ++format;
         } else {
             ans.precision = io_internal_atoi(&format);
@@ -88,7 +88,7 @@ io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr, 
             ans.length = IO_PRINTF_LENGTH_ll;
         }
     }
-    
+
     if (strchr("diuoxXfFeEgGaAcspn%", *format) != NULL) {
         ans.specifier = *format++;
     } else {
@@ -122,13 +122,13 @@ int io_vprintf(const char *format, va_list vlist) {
 
 #define CASE_SUBROUTINE(symbol, suffix) \
     case symbol : \
-        io_printf_subroutine_##suffix (ocdev, spec, vlist); \
-        break; 
+        io_printf_subroutine_##suffix (ocdev, spec, &vlist); \
+        break;
 
 int io_vdprintf(const ocdev_t ocdev, const char *format, va_list vlist) {
     while (*format) {
         if (*format == '%') {
-            io_printf_format_specifier_t spec = io_parse_format_specifier(&format, vlist);
+            io_printf_format_specifier_t spec = io_parse_format_specifier(&format, &vlist);
             switch (spec.specifier) {
                 CASE_SUBROUTINE('d', d);
                 CASE_SUBROUTINE('i', i);

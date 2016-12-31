@@ -9,7 +9,7 @@
     bool space_for_sign = spec.flags & IO_PRINTF_FLAG_SPACE; \
     bool use_prefix = spec.flags & IO_PRINTF_FLAG_SHARP; \
     bool pad_with_zeroes = spec.flags & IO_PRINTF_FLAG_ZERO; \
-    bool precision_specified = spec.flags & IO_PRINTF_FLAG_PRECISION_SPECIFIED; 
+    bool precision_specified = spec.flags & IO_PRINTF_FLAG_PRECISION_SPECIFIED;
 
 #define INIT_DIGITS(uppercase) \
     const char *DIGITS = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
@@ -72,7 +72,7 @@ INTEGER_PRINTER( common_suffix##_int, sign int, base, prefix, uppercase); \
 INTEGER_PRINTER( common_suffix##_char, sign char, base, prefix, uppercase); \
 INTEGER_PRINTER( common_suffix##_s_int, sign short int, base, prefix, uppercase); \
 INTEGER_PRINTER( common_suffix##_l_int, sign long int, base, prefix, uppercase); \
-INTEGER_PRINTER( common_suffix##_ll_int, sign long long int, base, prefix, uppercase); 
+INTEGER_PRINTER( common_suffix##_ll_int, sign long long int, base, prefix, uppercase);
 
 GEN_PRINTERS(s, 10, signed, "", false);
 GEN_PRINTERS(u, 10, unsigned, "", false);
@@ -82,21 +82,21 @@ GEN_PRINTERS(H, 16, unsigned, "0X", true);
 
 
 #define SUBROUTINE_HEADER(suffix) \
-bool io_printf_subroutine_##suffix (ocdev_t ocdev, io_printf_format_specifier_t spec, va_list vlist)
+bool io_printf_subroutine_##suffix (ocdev_t ocdev, io_printf_format_specifier_t spec, va_list *vlist_ptr)
 
 #define GEN_SUBROUTINE(subroutine_suffix, printer_type) \
 SUBROUTINE_HEADER(subroutine_suffix) { \
     switch (spec.length) { \
         case IO_PRINTF_LENGTH_none: \
-            return io_internal_print_##printer_type##_int(ocdev, spec, va_arg(vlist, int)); \
+            return io_internal_print_##printer_type##_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
         case IO_PRINTF_LENGTH_hh: \
-            return io_internal_print_##printer_type##_char(ocdev, spec, va_arg(vlist, int)); \
+            return io_internal_print_##printer_type##_char(ocdev, spec, va_arg(*vlist_ptr, int)); \
         case IO_PRINTF_LENGTH_h: \
-            return io_internal_print_##printer_type##_s_int(ocdev, spec, va_arg(vlist, int)); \
+            return io_internal_print_##printer_type##_s_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
         case IO_PRINTF_LENGTH_l: \
-            return io_internal_print_##printer_type##_l_int(ocdev, spec, va_arg(vlist, long int)); \
+            return io_internal_print_##printer_type##_l_int(ocdev, spec, va_arg(*vlist_ptr, long int)); \
         case IO_PRINTF_LENGTH_ll: \
-            return io_internal_print_##printer_type##_ll_int(ocdev, spec, va_arg(vlist, long long int)); \
+            return io_internal_print_##printer_type##_ll_int(ocdev, spec, va_arg(*vlist_ptr, long long int)); \
     } \
     return false; \
 } \
@@ -128,7 +128,7 @@ PRINTER_HEADER(string, char *) {
 
 SUBROUTINE_HEADER(s) {
     if (spec.length == IO_PRINTF_LENGTH_none) {
-        return io_internal_print_string(ocdev, spec, va_arg(vlist, char *));
+        return io_internal_print_string(ocdev, spec, va_arg(*vlist_ptr, char *));
     }
     return false;
 }
