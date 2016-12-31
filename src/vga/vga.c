@@ -7,6 +7,7 @@ uint16_t vga_height;
 uint16_t vga_x;
 uint16_t vga_y;
 uint8_t vga_color;
+const ocdev_t vga_ocdev = {vga_putc, vga_puts, vga_putsl};
 
 void vga_internal_update_cursor(void) {
     uint16_t cursor = vga_x + vga_width * vga_y;
@@ -94,6 +95,12 @@ void vga_puts(const char *str) {
     }
 }
 
+void vga_putsl(const char *str, uint32_t length) {
+    while (length--) {
+        vga_putc(*str++);
+    }
+}
+
 void vga_move_cursor(uint16_t x, uint16_t y) {
     vga_x = x;
     vga_y = y;
@@ -128,4 +135,8 @@ void vga_set_foreground(vga_color_t color) {
 void vga_set_background(vga_color_t color) {
     vga_color &= 15;
     vga_color |= color << 4;
+}
+
+const ocdev_t vga_get_ocdev(void) {
+    return vga_ocdev;
 }
