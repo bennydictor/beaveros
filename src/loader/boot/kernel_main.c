@@ -11,6 +11,12 @@ void kernel_internal_printf_testing(void) {
     io_printf("I can even print symbols: %c\n", 'q'); 
 }
 
+void kernel_internal_print_module_tag(boot_info_module_tag_t *tag) {
+    io_printf("   start: %#.8x\n", tag->mod_start);
+    io_printf("     end: %#.8x\n", tag->mod_end);
+    io_printf("  string: %s\n", tag->string);
+}
+
 void kernel_main(uint32_t eax, uint32_t ebx) {
     vga_init();
     vga_set_foreground(COLOR_LIGHT_GREEN);
@@ -27,6 +33,9 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
     boot_info_tag_header_t *tag = (void *)(boot_info_header) + sizeof(boot_info_fixed_part_t);
     while (tag->type != BOOT_INFO_END_TAG) {
         io_printf("TAG type: %2u, size: %2u\n", tag->type, tag->size);
+        if (tag->type == BOOT_INFO_MODULE_TAG) {
+            kernel_internal_print_module_tag((boot_info_module_tag_t *)tag);
+        }
         tag = boot_info_next_tag(tag);
     }
 
