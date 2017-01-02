@@ -217,4 +217,6 @@ typedef struct {
 #define DT_LOPROC       (0x70000000)
 #define DT_HIPROC       (0x7FFFFFFF)
 
+void print_elf64(void *);
+
 #endif // BEAVER_ELF64_ELF64_H
