@@ -1,5 +1,5 @@
-#ifndef BEAVER_COMMON_PANIC_H
-#define BEAVER_COMMON_PANIC_H
+#ifndef BEAVER_PANIC_H
+#define BEAVER_PANIC_H
 
 #include <stdint.h>
 
@@ -7,5 +7,5 @@
 void panic(const char *msg, const char *filename, uint32_t line);
 extern void terminate(void);
 
-#endif // BEAVER_COMMON_PANIC_H
+#endif // BEAVER_PANIC_H
 

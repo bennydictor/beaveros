@@ -1,5 +1,5 @@
-#ifndef BEAVER_COMMON_PORTIO_H
-#define BEAVER_COMMON_PORTIO_H
+#ifndef BEAVER_IO_PORTIO_H
+#define BEAVER_IO_PORTIO_H
 
 #include <stdint.h>
 
@@ -11,4 +11,4 @@ uint8_t inb(uint16_t port);
 uint16_t inw(uint16_t port);
 uint32_t inl(uint16_t port);
 
-#endif // BEAVER_COMMON_PORTIO_H
+#endif // BEAVER_IO_PORTIO_H

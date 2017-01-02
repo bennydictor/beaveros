@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <io/stddev.h>
-#include <common/string.h>
+#include <string.h>
 #include <stddef.h>
 
 uint16_t io_internal_atoi(const char **str) {

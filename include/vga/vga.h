@@ -40,6 +40,6 @@ void vga_set_color(uint8_t color);
 void vga_set_foreground(vga_color_t color);
 void vga_set_background(vga_color_t color);
 
-const ocdev_t vga_get_ocdev(void);
+ocdev_t vga_get_ocdev(void);
 
 #endif // BEAVER_VGA_VGA_H

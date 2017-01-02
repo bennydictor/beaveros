@@ -1,5 +1,5 @@
 #include <vga/vga.h>
-#include <common/portio.h>
+#include <io/portio.h>
 
 uint16_t *vga_buffer;
 uint16_t vga_width;
@@ -137,6 +137,6 @@ void vga_set_background(vga_color_t color) {
     vga_color |= color << 4;
 }
 
-const ocdev_t vga_get_ocdev(void) {
+ocdev_t vga_get_ocdev(void) {
     return vga_ocdev;
 }

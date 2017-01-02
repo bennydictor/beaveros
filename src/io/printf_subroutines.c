@@ -1,6 +1,6 @@
 #include <io/printf_subroutines.h>
-#include <common/math.h>
-#include <common/string.h>
+#include <math.h>
+#include <string.h>
 
 
 #define INIT_PRINTF_SUBROUTINE \

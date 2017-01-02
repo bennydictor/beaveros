@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-
 extern uint64_t __udivmoddi4(uint64_t num, uint64_t den, uint64_t *rem);
 
 int64_t __divdi3(int64_t num, int64_t den)

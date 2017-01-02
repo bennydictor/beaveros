@@ -1,7 +1,7 @@
 #include <vga/vga.h>
 #include <io/stddev.h>
 #include <io/printf.h>
-#include <common/assert.h>
+#include <assert.h>
 #include <boot_info/tags.h>
 
 void kernel_internal_printf_testing(void) {
