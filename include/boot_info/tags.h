@@ -31,15 +31,15 @@ typedef struct {
 typedef struct {
     uint32_t type;
     uint32_t size;
-    uint8_t string_first_byte;
+    uint8_t string[0];
 } __attribute__ ((packed)) boot_info_boot_cmd_t;
 
 typedef struct {
     uint32_t type;
     uint32_t size;
-    void *mod_start;
-    void *mod_end;
-    uint8_t string_first_byte;
+    uint32_t mod_start;
+    uint32_t mod_end;
+    uint8_t string[0];
 } __attribute__ ((packed)) boot_info_module_tag_t;
 
 typedef struct {
@@ -49,7 +49,7 @@ typedef struct {
     uint16_t entsize;
     uint16_t shndx;
     uint16_t reserved;
-    uint8_t section_headers_first_byte;
+    uint8_t section_headers[0];
 } __attribute__ ((packed)) boot_info_elf_symbols_t;
 
 typedef struct {
@@ -64,13 +64,13 @@ typedef struct {
     uint32_t size;
     uint32_t entry_size;
     uint32_t entry_version;
-    boot_info_memory_map_entry_t first_entry;
+    boot_info_memory_map_entry_t entries[0];
 } __attribute__ ((packed)) boot_info_memory_map_t;
 
 typedef struct {
     uint32_t type;
     uint32_t size;
-    uint8_t string_first_byte;
+    uint8_t string[0];
 } __attribute__ ((packed)) boot_info_boot_loader_name_t;
 
 typedef struct {
@@ -106,7 +106,7 @@ typedef struct {
 
 typedef struct {
     uint32_t framebuffer_palette_num_colors;
-    boot_info_color_descriptor_t first_color_descriptor;
+    boot_info_color_descriptor_t color_descriptors[0];
 } __attribute__ ((packed)) boot_info_framebuffer_palette_t;
 
 typedef struct {
@@ -128,7 +128,7 @@ typedef struct {
     uint8_t framebuffer_bpp;
     uint8_t framebuffer_type;
     uint8_t reserved;
-    uint8_t color_info_first_byte;
+    uint8_t color_info[0];
 } __attribute__ ((packed)) boot_info_framebuffer_info_t;
 
 boot_info_tag_header_t *boot_info_next_tag(boot_info_tag_header_t *tag);
