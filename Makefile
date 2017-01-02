@@ -52,8 +52,8 @@ clean:
 	rm -rf $(IMAGE) $(BINARIES) $(ISO) $(OBJ)
 	@rm -rf .bmake
 
-run:
-	qemu-system-i386 $(IMAGE)
+run: $(IMAGE)
+	qemu-system-x86_64 $(IMAGE)
 
 dist: clean
 	tar -cvf $(DISTNAME).tar --exclude=$(DISTNAME).tar .
