@@ -1,19 +1,7 @@
-NAME					:= beaveros
-KERNEL					:= $(NAME).bin
-IMAGE					:= $(NAME).iso
+IMAGE					:= beaveros.iso
 SRC						:= src
 OBJ						:= obj
 ISO						:= iso
-
-CC						:= i686-elf-gcc
-CFLAGS					:= -std=c99 -pipe -Wall -Wextra -Wshadow -ffreestanding -Wno-unused-variable 
-
-AS          			:= i686-elf-as
-ASFLAGS     			:=
-
-LD						:= $(CC)
-LDFLAGS     			:= -T src/linker.ld -ffreestanding -nostdlib
-LIBS        			:= gcc
 
 FLAGS					:= DEBUG
 # Flags can be changed from command line, eg:
@@ -30,106 +18,45 @@ WITHOUT_DEBUG_LDFLAGS	:= -O2
 
 # Do not change below this line, unless you know what are you doing
 
-SRC_TREE		:= $(shell find $(SRC) -type d)
-CC_SRCS			:= $(shell find $(SRC) -type f -regex '.*\.c')
-AS_SRCS			:= $(shell find $(SRC) -type f -regex '.*\.s')
-ALL_SRCS		:= $(CC_SRCS) $(CXX_SRCS) $(AS_SRCS)
+MODULES			:= $(shell find src -maxdepth 1 -mindepth 1 -type d)
+MODULES			:= $(MODULES:src/%=%)
+BINARIES		:= $(MODULES:%=%.bin)
 
-ENABLED_FLAGS	:= $(foreach f,$(FLAGS),$(shell test '$($(f))' == 1 && echo $(f)))
-DISABLED_FLAGS	:= $(foreach f,$(FLAGS),$(shell test '$($(f))' != 1 && echo $(f)))
+export SRC OBJ FLAGS DEBUG WITH_DEBUG_CFLAGS WITH_DEBUG_LDFLAGS WITH_DEBUG_ASFLAGS WITHOUT_DEBUG_CFLAGS WITHOUT_DEBUG_LDFLAGS
 
-CFLAGS			:= $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_CFLAGS)) $(CFLAGS)
-CXXFLAGS		:= $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_CXXFLAGS)) $(CXXFLAGS)
-ASFLAGS			:= $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_ASFLAGS)) $(ASFLAGS)
-LDFLAGS			:= $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_LDFLAGS)) $(LDFLAGS)
+SHELL_EXPORT	:= $(shell cat Makefile | sed -n '/^export/s/^export //p')
+SHELL_EXPORT	:= $(foreach v,$(SHELL_EXPORT),$(v)='$($(v))')
 
-CFLAGS			:= $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_CFLAGS)) $(CFLAGS)
-CXXFLAGS		:= $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_CXXFLAGS)) $(CXXFLAGS)
-ASFLAGS			:= $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_ASFLAGS)) $(ASFLAGS)
-LDFLAGS			:= $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_LDFLAGS)) $(LDFLAGS)
-
-ifndef LD
-$(error LD is undefined. Define it in Makefile)
-LD				:= ld
-endif
-LDCOMPILE		:= $(strip $(LD) $(LDFLAGS))
-
-ifdef CC_SRCS
-ifndef CC
-$(error CC is undefined. Define it in Makefile)
-CC				:= gcc
-endif
-CCCOMPILE		:= $(strip $(CC) $(CFLAGS) -I include)
-endif
-
-ifdef AS_SRCS
-ifndef AS
-$(error AS is undefined. Define it in Makefile)
-AS				:= as
-endif
-ASCOMPILE		:= $(strip $(AS) $(ASFLAGS))
-endif
-
-OBJ_TREE		:= $(SRC_TREE:$(SRC)%=$(OBJ)%)
-OBJS			:= $(ALL_SRCS:$(SRC)/%=$(OBJ)/%.o)
-
-MAKE_TREE		:= $(SRC_TREE:$(SRC)%=.bmake%)
-BUILD			:= $(ALL_SRCS:$(SRC)/%=.bmake/%.b) .bmake/$(KERNEL).b
-DEPENDS_SRCS	:= $(CC_SRCS) $(CXX_SRCS)
-DEPENDS			:= $(DEPENDS_SRCS:$(SRC)/%=.bmake/%.d) .bmake/$(KERNEL).d
-
-REBUILD			:= 	$(foreach s,$(CC_SRCS),$(shell echo $(CCCOMPILE) | diff $(s:$(SRC)/%=.bmake/%.b) - >/dev/null 2>/dev/null || echo $(s))) \
-					$(foreach s,$(CXX_SRCS),$(shell echo $(CXXCOMPILE) | diff $(s:$(SRC)/%=.bmake/%.b) - >/dev/null 2>/dev/null || echo $(s))) \
-					$(foreach s,$(AS_SRCS),$(shell echo $(ASCOMPILE) | diff $(s:$(SRC)/%=.bmake/%.b) - >/dev/null 2>/dev/null || echo $(s))) \
-					$(shell echo $(LDCOMPILE) | diff .bmake/$(KERNEL).b - >/dev/null 2>/dev/null || echo $(KERNEL))
+REBUILD			:= $(strip $(foreach m,$(MODULES),$(shell $(SHELL_EXPORT) $(MAKE) -f $(SRC)/$(m).mk -q || echo -n "$(m).bin ")))
 
 DISTNAME		:= $(notdir $(PWD))
 
-.PHONY: $(REBUILD)
+all: $(IMAGE)
 
-all: beaveros.iso
-
-.SECONDEXPANSION:
-
-PERCENT := %
-
-$(IMAGE): $(KERNEL) $(SRC)/grub.cfg
-	mkdir -p $(ISO)/boot/grub
-	cp $< $(ISO)/boot
+$(IMAGE): $(BINARIES) $(SRC)/grub.cfg | $(ISO) $(ISO)/boot $(ISO)/boot/grub
+	cp $(BINARIES) $(ISO)/boot
 	cp $(SRC)/grub.cfg $(ISO)/boot/grub
 	grub-mkrescue -o $@ $(ISO)
 
-$(KERNEL): $(OBJS) | .bmake
-	$(LDCOMPILE) $^ -o $@
-	@echo $(LDCOMPILE) >.bmake/$@.b
+$(BINARIES):
+	$(MAKE) -f $(@:%.bin=src/%.mk) all
 
-$(OBJ)/%.c.o: $(SRC)/%.c | $$(@D) $$(patsubst $(OBJ)$$(PERCENT),.bmake$$(PERCENT),$$(@D))
-	$(CCCOMPILE) -c $< -o $@
-	@echo $(CCCOMPILE) >.bmake/$*.c.b
-	@$(CCCOMPILE) -M $< | sed -E 's:^$*.o:$(OBJ)/$*.c.o:' >.bmake/$*.c.d
-#	@$(CCCOMPILE) -M $< | sed -E 's/^$*.o/$(OBJ)\/$*.c.o/' >.bmake/$*.c.d
+ifneq "$(REBUILD)" ""
+.PHONY: $(IMAGE) $(REBUILD)
+endif
 
-$(OBJ)/%.s.o: $(SRC)/%.s | $$(@D) $$(patsubst $(OBJ)$$(PERCENT),.bmake$$(PERCENT),$$(@D))
-	$(ASCOMPILE) $< -o $@
-	@echo $(ASCOMPILE) >.bmake/$*.s.b
-
-$(OBJ_TREE):
+$(ISO) $(ISO)/boot $(ISO)/boot/grub:
 	mkdir -p $@
 
-$(MAKE_TREE):
-	@mkdir -p $@
-
-run: $(IMAGE)
-	@qemu-system-x86_64 -cdrom $(IMAGE)
-
 clean:
-	rm -rf $(KERNEL) $(IMAGE) $(OBJ) $(ISO)
+	rm -rf $(IMAGE) $(BINARIES) $(ISO) $(OBJ)
 	@rm -rf .bmake
+
+run:
+	qemu-system-i386 $(IMAGE)
 
 dist: clean
 	tar -cvf $(DISTNAME).tar --exclude=$(DISTNAME).tar .
 	$(COMPRESS) $(DISTNAME).tar
 
-.PHONY: all clean
-
--include $(DEPENDS)
+.PHONY: all clean dist run
