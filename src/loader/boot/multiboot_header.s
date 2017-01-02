@@ -12,7 +12,13 @@ header_start:
     .long length
     .long checksum
 
-    .short 0
-    .short 0
-    .long 8
+    # Module alignmet tag
+    .short 6    # type
+    .short 1    # flags
+    .long 8     # size
+
+    # End tag
+    .short 0    # type
+    .short 0    # flags
+    .long 8     # size
 header_end:

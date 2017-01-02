@@ -53,7 +53,7 @@ clean:
 	@rm -rf .bmake
 
 run: $(IMAGE)
-	qemu-system-x86_64 $(IMAGE)
+	@qemu-system-x86_64 $(IMAGE)
 
 dist: clean
 	tar -cvf $(DISTNAME).tar --exclude=$(DISTNAME).tar .
