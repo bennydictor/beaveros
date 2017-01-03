@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef struct ocdev {
+typedef struct {
     void (*putc)(char);
     void (*puts)(const char *);
     void (*putsl)(const char *, uint32_t);

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef struct page_table_entry {
+typedef struct {
     uint64_t present : 1;
     uint64_t writable : 1;
     uint64_t user_accessible : 1;

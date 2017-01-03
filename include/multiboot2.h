@@ -3,24 +3,24 @@
 
 #include <stdint.h>
 
-typedef struct multiboot2_fixed_part {
+typedef struct {
     uint32_t total_size;
     uint32_t reserved;
 } __attribute__ ((packed)) multiboot2_fixed_part_t;
 
-typedef struct multiboot2_tag_header {
+typedef struct {
     uint32_t type;
     uint32_t size;
 } __attribute__ ((packed)) multiboot2_tag_header_t;
 
-typedef struct multiboot2_basic_memory_info {
+typedef struct {
     uint32_t type;
     uint32_t size;
     uint32_t mem_lower;
     uint32_t mem_upper;
 } __attribute__ ((packed)) multiboot2_basic_memory_info_t;
 
-typedef struct multiboot2_bios_boot_device {
+typedef struct {
     uint32_t type;
     uint32_t size;
     uint32_t biosdev;
@@ -28,13 +28,13 @@ typedef struct multiboot2_bios_boot_device {
     uint32_t sub_partition;
 } __attribute__ ((packed)) multiboot2_bios_boot_device_t;
 
-typedef struct multiboot2_boot_cmd {
+typedef struct {
     uint32_t type;
     uint32_t size;
     uint8_t string[0];
 } __attribute__ ((packed)) multiboot2_boot_cmd_t;
 
-typedef struct multiboot2_module_tag {
+typedef struct {
     uint32_t type;
     uint32_t size;
     uint32_t mod_start;
@@ -42,7 +42,7 @@ typedef struct multiboot2_module_tag {
     uint8_t string[0];
 } __attribute__ ((packed)) multiboot2_module_tag_t;
 
-typedef struct multiboot2_elf_symbols {
+typedef struct {
     uint32_t type;
     uint32_t size;
     uint16_t num;
@@ -52,14 +52,14 @@ typedef struct multiboot2_elf_symbols {
     uint8_t section_headers[0];
 } __attribute__ ((packed)) multiboot2_elf_symbols_t;
 
-typedef struct multiboot2_memory_map_entry {
+typedef struct {
     uint64_t base_addr;
     uint64_t length;
     uint32_t type;
     uint32_t reserved;
 } __attribute__ ((packed)) multiboot2_memory_map_entry_t;
 
-typedef struct multiboot2_memory_map {
+typedef struct {
     uint32_t type;
     uint32_t size;
     uint32_t entry_size;
@@ -67,13 +67,13 @@ typedef struct multiboot2_memory_map {
     multiboot2_memory_map_entry_t entries[0];
 } __attribute__ ((packed)) multiboot2_memory_map_t;
 
-typedef struct multiboot2_boot_loader_name {
+typedef struct {
     uint32_t type;
     uint32_t size;
     uint8_t string[0];
 } __attribute__ ((packed)) multiboot2_boot_loader_name_t;
 
-typedef struct multiboot2_apm_table {
+typedef struct {
     uint32_t type;
     uint32_t size;
     uint16_t version;
@@ -87,7 +87,7 @@ typedef struct multiboot2_apm_table {
     uint16_t dseg_len;
 } __attribute__ ((packed)) multiboot2_apm_table_t;
 
-typedef struct multiboot2_vbe_info {
+typedef struct {
     uint32_t type;
     uint32_t size;
     uint16_t vbe_mode;
@@ -98,18 +98,18 @@ typedef struct multiboot2_vbe_info {
     uint8_t vbe_mode_info[256];
 } __attribute__ ((packed)) multiboot2_vbe_info_t;
 
-typedef struct multiboot2_color_descriptor {
+typedef struct {
     uint8_t red_value;
     uint8_t green_value;
     uint8_t blue_value;
 } __attribute__ ((packed)) multiboot2_color_descriptor_t;
 
-typedef struct multiboot2_framebuffer_palette {
+typedef struct {
     uint32_t framebuffer_palette_num_colors;
     multiboot2_color_descriptor_t color_descriptors[0];
 } __attribute__ ((packed)) multiboot2_framebuffer_palette_t;
 
-typedef struct multiboot2_color_info {
+typedef struct {
     uint8_t framebuffer_red_field_position;
     uint8_t framebuffer_red_mask_size;
     uint8_t framebuffer_green_field_position;
@@ -118,7 +118,7 @@ typedef struct multiboot2_color_info {
     uint8_t framebuffer_blue_mask_size;
 } __attribute__ ((packed)) multiboot2_color_info_t;
 
-typedef struct multiboot2_framebuffer_info {
+typedef struct {
     uint32_t type;
     uint32_t size;
     uint64_t framebuffer_addr;
