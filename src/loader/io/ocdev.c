@@ -1,6 +1,6 @@
 #include <io/ocdev.h>
 
-ocdev_t io_std_ocdev;
+static ocdev_t io_std_ocdev;
 
 void io_set_std_ocdev(const ocdev_t ocdev) {
     io_std_ocdev = ocdev;

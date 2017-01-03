@@ -29,7 +29,7 @@ typedef struct {
 // No, they are not. Please, implement them.
 // TODO j, z, t, L
 
-uint16_t io_internal_atoi(const char **str) {
+static uint16_t io_internal_atoi(const char **str) {
     uint16_t ans = 0;
     while (**str >= '0' && **str <= '9') {
         ans *= 10;
@@ -40,7 +40,8 @@ uint16_t io_internal_atoi(const char **str) {
 }
 
 // Format specifier structure: %[flags][width][.precision][length]specifier
-io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr, va_list *vlist_ptr) {
+static io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr,
+                                                                va_list *vlist_ptr) {
     const char *format = *format_ptr;
     io_printf_format_specifier_t ans;
     ans.flags = 0;
@@ -188,11 +189,11 @@ PRINTER_HEADER(suffix, type) { \
 }
 
 #define GEN_PRINTERS(common_suffix, base, sign, prefix, uppercase) \
-INTEGER_PRINTER( common_suffix##_int, sign int, base, prefix, uppercase); \
-INTEGER_PRINTER( common_suffix##_char, sign char, base, prefix, uppercase); \
-INTEGER_PRINTER( common_suffix##_s_int, sign short int, base, prefix, uppercase); \
-INTEGER_PRINTER( common_suffix##_l_int, sign long int, base, prefix, uppercase); \
-INTEGER_PRINTER( common_suffix##_ll_int, sign long long int, base, prefix, uppercase);
+INTEGER_PRINTER(common_suffix##_int, sign int, base, prefix, uppercase); \
+INTEGER_PRINTER(common_suffix##_char, sign char, base, prefix, uppercase); \
+INTEGER_PRINTER(common_suffix##_s_int, sign short int, base, prefix, uppercase); \
+INTEGER_PRINTER(common_suffix##_l_int, sign long int, base, prefix, uppercase); \
+INTEGER_PRINTER(common_suffix##_ll_int, sign long long int, base, prefix, uppercase);
 
 GEN_PRINTERS(s, 10, signed, "", false);
 GEN_PRINTERS(u, 10, unsigned, "", false);
@@ -201,7 +202,9 @@ GEN_PRINTERS(h, 16, unsigned, "0x", false);
 GEN_PRINTERS(H, 16, unsigned, "0X", true);
 
 #define SUBROUTINE_HEADER(suffix) \
-bool io_printf_subroutine_##suffix (ocdev_t ocdev, io_printf_format_specifier_t spec, va_list *vlist_ptr)
+bool io_printf_subroutine_##suffix(ocdev_t ocdev, \
+                                    io_printf_format_specifier_t spec, \
+                                    va_list *vlist_ptr)
 
 #define GEN_SUBROUTINE(subroutine_suffix, printer_type) \
 SUBROUTINE_HEADER(subroutine_suffix) { \
@@ -213,9 +216,13 @@ SUBROUTINE_HEADER(subroutine_suffix) { \
         case IO_PRINTF_LENGTH_h: \
             return io_internal_print_##printer_type##_s_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
         case IO_PRINTF_LENGTH_l: \
-            return io_internal_print_##printer_type##_l_int(ocdev, spec, va_arg(*vlist_ptr, long int)); \
+            return io_internal_print_##printer_type##_l_int(ocdev, \
+                                                            spec, \
+                                                            va_arg(*vlist_ptr, long int)); \
         case IO_PRINTF_LENGTH_ll: \
-            return io_internal_print_##printer_type##_ll_int(ocdev, spec, va_arg(*vlist_ptr, long long int)); \
+            return io_internal_print_##printer_type##_ll_int(ocdev, \
+                                                                spec, \
+                                                                va_arg(*vlist_ptr, long long int)); \
     } \
     return false; \
 } \
