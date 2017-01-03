@@ -14,6 +14,7 @@ static void print_module_tag(multiboot2_module_tag_t *tag) {
     printf("  string: %s\n", tag->string);
 }
 
+__attribute__ ((force_align_arg_pointer))
 void loader_main(uint32_t eax, uint32_t ebx) {
     vga_init();
     vga_set_foreground(COLOR_LIGHT_GREEN);
