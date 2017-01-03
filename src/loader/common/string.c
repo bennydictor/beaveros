@@ -7,7 +7,7 @@ int strcmp(const char *str1, const char *str2) {
         ++str2;
     }
 
-    return (int)(*str1) - (int)(*str2);
+    return (int) *str1 - (int) *str2;
 }
 
 uint32_t strlen(const char *str) {
