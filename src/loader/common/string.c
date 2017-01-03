@@ -33,3 +33,20 @@ void *memcpy(void *dest, const void *src, uint32_t num) {
     }
     return dest;
 }
+
+void *memmove(void *dest, const void *src, uint32_t num) {
+    uint8_t *dest_copy = dest;
+    const uint8_t *src_copy = src;
+
+    if (dest_copy < src_copy) {
+        while (num--) {
+            dest_copy[num] = src_copy[num];
+        }
+    } else if (dest_copy > src_copy) {
+        while (num--) {
+            *dest_copy++ = *src_copy++;
+        }
+    }
+
+    return dest;
+}

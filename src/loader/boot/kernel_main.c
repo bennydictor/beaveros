@@ -64,8 +64,6 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
         PANIC("Kernel not found");
     }
 
-    // print_elf64((void *)kernel_start);
-    
     if (meminfo != NULL) {
         io_printf("Basic memory info:\nmem_lower: %#.8x; mem_upper: %#.8x\n", meminfo->mem_lower, meminfo->mem_upper);
 
@@ -82,6 +80,8 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
 
     ASSERT(check_cpuid());
     ASSERT(check_long_mode());
+
+    
 
     io_printf("kernel_main() done\n");
 }
