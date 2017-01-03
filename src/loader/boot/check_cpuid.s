@@ -14,9 +14,7 @@ check_cpuid:
     push    %ecx
     popf
     cmp     %ecx,           %eax
-    je      .LnoLongMode
-    mov     $1,             %eax
-    ret
-.LnoLongMode:
     mov     $0,             %eax
+    sete    %al
+    xor     $1,             %eax
     ret
