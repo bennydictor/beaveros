@@ -44,10 +44,10 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
 
     boot_info_tag_header_t *tag = (void *)(boot_info_header) + sizeof(boot_info_fixed_part_t);
     while (tag->type != BOOT_INFO_END_TAG) {
-//        io_printf("TAG type: %2u, size: %2u\n", tag->type, tag->size);
+        io_printf("TAG type: %2u, size: %2u\n", tag->type, tag->size);
         if (tag->type == BOOT_INFO_MODULE_TAG) {
             boot_info_module_tag_t *module_tag = (boot_info_module_tag_t *)tag;
-//            kernel_internal_print_module_tag(module_tag);
+            kernel_internal_print_module_tag(module_tag);
             if (!strcmp("BEAVEROS", (char *)module_tag->string)) {
                 kernel_start = module_tag->mod_start;
                 kernel_end = module_tag->mod_end;

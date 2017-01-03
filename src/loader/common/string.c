@@ -24,3 +24,12 @@ const char *strchr(const char *str, int character) {
     }
     return *str ? str : NULL;
 }
+
+void *memcpy(void *dest, const void *src, uint32_t num) {
+    uint8_t *dest_copy = dest;
+    const uint8_t *src_copy = src;
+    while (num--) {
+        *dest_copy++ = *src_copy++;
+    }
+    return dest;
+}
