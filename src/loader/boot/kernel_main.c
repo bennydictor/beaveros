@@ -6,6 +6,7 @@
 #include <elf64/elf64.h>
 #include <string.h>
 #include <stddef.h>
+#include <boot/check_cpuid.h>
 
 /*
 void kernel_internal_printf_testing(void) {
@@ -77,6 +78,8 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
             io_printf("base_addr: %#.8llx; length: %#.8llx; type: %d\n", entry->base_addr, entry->length, entry->type);
         }
     }
+
+    io_printf("%d\n", check_cpuid());
 
     io_printf("kernel_main() done\n");
 }
