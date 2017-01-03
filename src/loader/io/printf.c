@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stddef.h>
+#include <math.h>
 
 typedef struct {
     uint8_t flags;
@@ -132,34 +133,37 @@ static printf_format_specifier_t parse_format_specifier(const char **format_ptr,
     bool pad_with_zeroes = spec.flags & IO_PRINTF_FLAG_ZERO; \
     bool precision_specified = spec.flags & IO_PRINTF_FLAG_PRECISION_SPECIFIED;
 
-#define INIT_DIGITS(uppercase) \
-    const char *DIGITS = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
+#define INIT_DIGITS(UPPERCASE) \
+    const char *DIGITS = UPPERCASE ? "0123456789ABCDEF" : "0123456789abcdef";
 
 #define BUF_SIZE 25
 
-#define PRINTER_HEADER(suffix, type) \
-bool print_##suffix (ocdev_t ocdev, printf_format_specifier_t spec, type d)
+#define PRINTER_HEADER(SUFFIX, TYPE) \
+bool print_##SUFFIX(ocdev_t ocdev, printf_format_specifier_t spec, TYPE d)
 
-#define INTEGER_PRINTER(suffix, type, base, prefix, uppercase) \
-PRINTER_HEADER(suffix, type) { \
-    INIT_PRINTF_SUBROUTINE; \
-    INIT_DIGITS(uppercase); \
-    char buf[BUF_SIZE]; \
-    buf[BUF_SIZE - 1] = 0; \
-    char sign_c = 0; \
+#define SIGN_CHECKER \
     if (d < 0) { \
         sign_c = '-'; \
         d = -d; \
-    } else if (forced_sign) { \
+    } else
+
+#define INTEGER_PRINTER(SUFFIX, TYPE, BASE, PREFIX, UPPERCASE, SIGN_CHECK) \
+PRINTER_HEADER(SUFFIX, TYPE) { \
+    INIT_PRINTF_SUBROUTINE; \
+    INIT_DIGITS(UPPERCASE); \
+    char buf[BUF_SIZE]; \
+    buf[BUF_SIZE - 1] = 0; \
+    char sign_c = 0; \
+    SIGN_CHECK if (forced_sign) { \
         sign_c = '+'; \
     } else if (space_for_sign) { \
         sign_c = ' '; \
     } \
     char *buf_writer = buf + BUF_SIZE - 1; \
-    int prefix_len = (use_prefix) ? strlen(prefix) : 0; /* I want to print 0x0 instead of 0 */ \
+    int prefix_len = (use_prefix) ? strlen(PREFIX) : 0; /* I want to print 0x0 instead of 0 */ \
     while (d > 0) { \
-        *(--buf_writer) = DIGITS[d % (base)]; \
-        d /= (base); \
+        *(--buf_writer) = DIGITS[d % (BASE)]; \
+        d /= (BASE); \
     } \
     if (!precision_specified) { \
         spec.precision = 1; \
@@ -175,7 +179,7 @@ PRINTER_HEADER(suffix, type) { \
     if (sign_c) { \
         ocdev.putc(sign_c); \
     } \
-    ocdev.putsl(prefix, prefix_len); \
+    ocdev.putsl(PREFIX, prefix_len); \
     for (int i = digits; i < spec.precision; ++i) { \
         ocdev.putc('0'); \
     } \
@@ -188,39 +192,39 @@ PRINTER_HEADER(suffix, type) { \
     return true; \
 }
 
-#define GEN_PRINTERS(common_suffix, base, sign, prefix, uppercase) \
-INTEGER_PRINTER(common_suffix##_int, sign int, base, prefix, uppercase); \
-INTEGER_PRINTER(common_suffix##_char, sign char, base, prefix, uppercase); \
-INTEGER_PRINTER(common_suffix##_s_int, sign short int, base, prefix, uppercase); \
-INTEGER_PRINTER(common_suffix##_l_int, sign long int, base, prefix, uppercase); \
-INTEGER_PRINTER(common_suffix##_ll_int, sign long long int, base, prefix, uppercase);
+#define GEN_PRINTERS(COMMON_SUFFIX, BASE, SIGN, PREFIX, UPPERCASE, SIGN_CHECK) \
+INTEGER_PRINTER(COMMON_SUFFIX##_int, SIGN int, BASE, PREFIX, UPPERCASE, SIGN_CHECK); \
+INTEGER_PRINTER(COMMON_SUFFIX##_char, SIGN char, BASE, PREFIX, UPPERCASE, SIGN_CHECK); \
+INTEGER_PRINTER(COMMON_SUFFIX##_s_int, SIGN short int, BASE, PREFIX, UPPERCASE, SIGN_CHECK); \
+INTEGER_PRINTER(COMMON_SUFFIX##_l_int, SIGN long int, BASE, PREFIX, UPPERCASE, SIGN_CHECK); \
+INTEGER_PRINTER(COMMON_SUFFIX##_ll_int, SIGN long long int, BASE, PREFIX, UPPERCASE, SIGN_CHECK);
 
-GEN_PRINTERS(s, 10, signed, "", false);
-GEN_PRINTERS(u, 10, unsigned, "", false);
-GEN_PRINTERS(o, 8, unsigned, "0", false);
-GEN_PRINTERS(h, 16, unsigned, "0x", false);
-GEN_PRINTERS(H, 16, unsigned, "0X", true);
+GEN_PRINTERS(s, 10, signed, "", false, SIGN_CHECKER);
+GEN_PRINTERS(u, 10, unsigned, "", false, );
+GEN_PRINTERS(o, 8, unsigned, "0", false, );
+GEN_PRINTERS(h, 16, unsigned, "0x", false, );
+GEN_PRINTERS(H, 16, unsigned, "0X", true, );
 
-#define SUBROUTINE_HEADER(suffix) \
-bool printf_subroutine_##suffix(ocdev_t ocdev, \
+#define SUBROUTINE_HEADER(SUFFIX) \
+bool printf_subroutine_##SUFFIX(ocdev_t ocdev, \
                                     printf_format_specifier_t spec, \
                                     va_list *vlist_ptr)
 
-#define GEN_SUBROUTINE(subroutine_suffix, printer_type) \
-SUBROUTINE_HEADER(subroutine_suffix) { \
+#define GEN_SUBROUTINE(SUBROUTINE_SUFFIX, PRINTER_TYPE) \
+SUBROUTINE_HEADER(SUBROUTINE_SUFFIX) { \
     switch (spec.length) { \
         case IO_PRINTF_LENGTH_none: \
-            return print_##printer_type##_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
+            return print_##PRINTER_TYPE##_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
         case IO_PRINTF_LENGTH_hh: \
-            return print_##printer_type##_char(ocdev, spec, va_arg(*vlist_ptr, int)); \
+            return print_##PRINTER_TYPE##_char(ocdev, spec, va_arg(*vlist_ptr, int)); \
         case IO_PRINTF_LENGTH_h: \
-            return print_##printer_type##_s_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
+            return print_##PRINTER_TYPE##_s_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
         case IO_PRINTF_LENGTH_l: \
-            return print_##printer_type##_l_int(ocdev, \
+            return print_##PRINTER_TYPE##_l_int(ocdev, \
                                                             spec, \
                                                             va_arg(*vlist_ptr, long int)); \
         case IO_PRINTF_LENGTH_ll: \
-            return print_##printer_type##_ll_int(ocdev, \
+            return print_##PRINTER_TYPE##_ll_int(ocdev, \
                                                                 spec, \
                                                                 va_arg(*vlist_ptr, long long int)); \
     } \
@@ -237,7 +241,7 @@ GEN_SUBROUTINE(X, H);
 PRINTER_HEADER(string, char *) {
     INIT_PRINTF_SUBROUTINE;
     uint32_t len = strlen(d);
-    uint32_t chars = precision_specified ? min(len, spec.precision) : len;
+    uint32_t chars = precision_specified ? umin(len, spec.precision) : len;
     if (!left_justify) {
         for (uint32_t i = chars; i < spec.width; ++i) {
             ocdev.putc(' ');

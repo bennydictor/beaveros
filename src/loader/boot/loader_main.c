@@ -52,6 +52,8 @@ void loader_main(uint32_t eax, uint32_t ebx) {
         PANIC("Kernel not found");
     }
 
+    (void) kernel_end; // TODO something with it
+
     if (meminfo != NULL) {
         printf("Basic memory info:\nmem_lower: %#.8x; mem_upper: %#.8x\n",
                     meminfo->mem_lower,
