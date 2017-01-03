@@ -7,7 +7,7 @@ AS          			:= $(ARCH)-as
 ASFLAGS     			:=
 
 LD						:= $(CC)
-LDFLAGS     			:= -T $(SRC)/linker.ld -ffreestanding -nostdlib
+LDFLAGS     			:= -T $(SRC)/linker.ld -ffreestanding -nostdlib -z max-page-size=0x1000
 LIBS        			:= gcc
 
 # Do not change below this line, unless you know what are you doing
