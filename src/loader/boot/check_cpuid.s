@@ -3,16 +3,16 @@
 .type       check_cpuid,    @function
 
 check_cpuid:
-    pushf
+    pushfl
     pop     %eax
     mov     %eax,           %ecx
     xorl    $(1 << 21),     %eax
     push    %eax
-    popf
-    pushf
+    popfl
+    pushfl
     popl    %eax
     push    %ecx
-    popf
+    popfl
     cmp     %ecx,           %eax
     mov     $0,             %eax
     sete    %al
