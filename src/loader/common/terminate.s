@@ -2,6 +2,8 @@
 .globl      terminate
 .type       terminate,  @function
 
-terminate:  cli
-.Lhlt:      hlt
-            jmp .Lhlt
+terminate:
+    cli
+.Lhlt:
+    hlt
+    jmp .Lhlt

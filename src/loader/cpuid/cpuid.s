@@ -8,13 +8,17 @@ check_cpuid:
     pushfl
     pop     %eax
     mov     %eax,               %ecx
+
     xor     $FLAGS_ID_BIT,      %eax
+
     push    %eax
     popfl
     pushfl
     pop     %eax
+
     push    %ecx
     popfl
+
     cmp     %ecx,               %eax
     mov     $0,                 %eax
     sete    %al
