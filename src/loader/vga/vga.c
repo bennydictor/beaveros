@@ -1,15 +1,15 @@
 #include <vga.h>
 #include <io/portio.h>
 
-uint16_t *vga_buffer;
-uint16_t vga_width;
-uint16_t vga_height;
-uint16_t vga_x;
-uint16_t vga_y;
-uint8_t vga_color;
-const ocdev_t vga_ocdev = {vga_putc, vga_puts, vga_putsl};
+static uint16_t *vga_buffer;
+static uint16_t vga_width;
+static uint16_t vga_height;
+static uint16_t vga_x;
+static uint16_t vga_y;
+static uint8_t vga_color;
+static const ocdev_t vga_ocdev = {vga_putc, vga_puts, vga_putsl};
 
-void vga_internal_update_cursor(void) {
+static void vga_internal_update_cursor(void) {
     uint16_t cursor = vga_x + vga_width * vga_y;
     outb(0x3D4, 14);
     outb(0x3D5, cursor >> 8);
@@ -17,7 +17,7 @@ void vga_internal_update_cursor(void) {
     outb(0x3D5, cursor);
 }
 
-void vga_internal_scroll(void) {
+static void vga_internal_scroll(void) {
     uint16_t blank = vga_color;
     blank <<= 8;
     blank |= ' ';
@@ -51,7 +51,7 @@ void vga_init(void) {
 
 void vga_putc(char c) {
     if (c == '\b') {
-        if (vga_x /* > 0*/) {
+        if (vga_x > 0) {
             --vga_x;
         }
     } else if (c == '\t') {
@@ -107,19 +107,19 @@ void vga_move_cursor(uint16_t x, uint16_t y) {
     vga_internal_update_cursor();
 }
 
-uint16_t vga_get_x() {
+uint16_t vga_get_x(void) {
     return vga_x;
 }
 
-uint16_t vga_get_y() {
+uint16_t vga_get_y(void) {
     return vga_y;
 }
 
-uint16_t vga_get_width() {
+uint16_t vga_get_width(void) {
     return vga_width;
 }
 
-uint16_t vga_get_height() {
+uint16_t vga_get_height(void) {
     return vga_height;
 }
 
