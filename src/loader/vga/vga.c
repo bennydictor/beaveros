@@ -9,7 +9,7 @@ static uint16_t vga_y;
 static uint8_t vga_color;
 static const ocdev_t vga_ocdev = {vga_putc, vga_puts, vga_putsl};
 
-static void vga_internal_update_cursor(void) {
+static void vga_update_cursor(void) {
     uint16_t cursor = vga_x + vga_width * vga_y;
     outb(0x3D4, 14);
     outb(0x3D5, cursor >> 8);
@@ -17,7 +17,7 @@ static void vga_internal_update_cursor(void) {
     outb(0x3D5, cursor);
 }
 
-static void vga_internal_scroll(void) {
+static void vga_scroll(void) {
     uint16_t blank = vga_color;
     blank <<= 8;
     blank |= ' ';
@@ -37,7 +37,7 @@ static void vga_internal_scroll(void) {
             ++y_to;
         }
     }
-    vga_internal_update_cursor();
+    vga_update_cursor();
 }
 
 void vga_init(void) {
@@ -73,8 +73,8 @@ void vga_putc(char c) {
         ++vga_y;
     }
 
-    vga_internal_scroll();
-    vga_internal_update_cursor();
+    vga_scroll();
+    vga_update_cursor();
 }
 
 void vga_clear() {
@@ -86,7 +86,7 @@ void vga_clear() {
     }
     vga_x = 0;
     vga_y = 0;
-    vga_internal_update_cursor();
+    vga_update_cursor();
 }
 
 void vga_puts(const char *str) {
@@ -104,7 +104,7 @@ void vga_putsl(const char *str, uint32_t length) {
 void vga_move_cursor(uint16_t x, uint16_t y) {
     vga_x = x;
     vga_y = y;
-    vga_internal_update_cursor();
+    vga_update_cursor();
 }
 
 uint16_t vga_get_x(void) {

@@ -11,7 +11,7 @@ typedef  int32_t Elf64_Sword;
 typedef uint64_t Elf64_Xword;
 typedef  int64_t Elf64_Sxword;
 
-typedef struct {
+typedef struct Elf64_Ehdr {
     unsigned char   e_ident[16];    /* ELF identification */
     Elf64_Half      e_type;         /* Object file type */
     Elf64_Half      e_machine;      /* Machine type */
@@ -26,7 +26,7 @@ typedef struct {
     Elf64_Half      e_shentsize;    /* Size of section header entry */
     Elf64_Half      e_shnum;        /* Number of section header entries */
     Elf64_Half      e_shstrndx;     /* Section name string table index */
-} Elf64_Ehdr;
+} Elf64_Ehdr_t;
 
 #define EI_MAG0         0
 #define EI_MAG1         1
@@ -68,7 +68,7 @@ typedef struct {
 #define SHN_ABS     0xFFF1
 #define SHN_COMMON  0xFFF2
 
-typedef struct {
+typedef struct Elf64_Shdr {
     Elf64_Word  sh_name;        /* Section name */
     Elf64_Word  sh_type;        /* Section type */
     Elf64_Xword sh_flags;       /* Section attributes */
@@ -79,7 +79,7 @@ typedef struct {
     Elf64_Word  sh_info;        /* Miscellaneous information */
     Elf64_Xword sh_addralign;   /* Address alignment boundary */
     Elf64_Xword sh_entsize;     /* Size of entries, if section has table */
-} Elf64_Shdr;
+} Elf64_Shdr_t;
 
 #define SHT_NULL        0
 #define SHT_PROGBITS    1
@@ -104,14 +104,14 @@ typedef struct {
 #define SHF_MASKOS      0x0F000000
 #define SHF_MASKPROC    0xF0000000
 
-typedef struct {
+typedef struct Elf64_Sym {
     Elf64_Word      st_name;    /* Symbol name */
     unsigned char   st_info;    /* Type and Binding attributes */
     unsigned char   st_other;   /* Reserved */
     Elf64_Half      st_shndx;   /* Section table index */
     Elf64_Addr      st_value;   /* Symbol value */
     Elf64_Xword     st_size;    /* Size of object (e.g., common) */
-} Elf64_Sym;
+} Elf64_Sym_t;
 
 #define STB_LOCAL   0
 #define STB_GLOBAL  1
@@ -131,22 +131,22 @@ typedef struct {
 #define STT_LOPROC  13
 #define STT_HIPROC  15
 
-typedef struct {
+typedef struct Elf64_Rel {
     Elf64_Addr  r_offset;   /* Address of reference */
     Elf64_Xword r_info;     /* Symbol index and type of relocation */
-} Elf64_Rel;
+} Elf64_Rel_t;
 
-typedef struct {
+typedef struct Elf64_Rela {
     Elf64_Addr      r_offset;   /* Address of reference */
     Elf64_Xword     r_info;     /* Symbol index and type of relocation */
     Elf64_Sxword    r_addend;   /* Constant part of expression */
-} Elf64_Rela;
+} Elf64_Rela_t;
 
 #define ELF64_R_SYM(I)      ((I) >> 32)
 #define ELF64_R_TYPE(I)     ((I) & 0xffffffffL)
 #define ELF64_R_INFO(S, T)  (((S) << 32) + ((T) & 0xffffffffL))
 
-typedef struct {
+typedef struct Elf64_Phdr {
     Elf64_Word  p_type;     /* Type of segment */
     Elf64_Word  p_flags;    /* Segment attributes */
     Elf64_Off   p_offset;   /* Offset in file */
@@ -155,7 +155,7 @@ typedef struct {
     Elf64_Xword p_filesz;   /* Size of segment in file */
     Elf64_Xword p_memsz;    /* Size of segment in memory */
     Elf64_Xword p_align;    /* Alignment of segment */
-} Elf64_Phdr;
+} Elf64_Phdr_t;
 
 #define PT_NULL     0
 #define PT_LOAD     1
@@ -175,13 +175,13 @@ typedef struct {
 #define PF_MASKOS   0x00FF0000
 #define PF_MASKPROC 0xFF000000
 
-typedef struct {
+typedef struct Elf64_Dyn {
     Elf64_Sxword    d_tag;
     union {
         Elf64_Xword d_val;
         Elf64_Addr  d_ptr;
     } d_un;
-} Elf64_Dyn;
+} Elf64_Dyn_t;
 
 #define DT_NULL         0
 #define DT_NEEDED       1

@@ -5,9 +5,9 @@
 #include <stdint.h>
 #include <io/ocdev.h>
 
-int io_vprintf(const char *format, va_list vlist);
-int io_vdprintf(const ocdev_t ocdev, const char *format, va_list vlist);
-int io_printf(const char *format, ...);
-int io_dprintf(const ocdev_t ocdev, const char *format, ...);
+int vprintf(const char *format, va_list vlist);
+int vdprintf(const ocdev_t ocdev, const char *format, va_list vlist);
+int printf(const char *format, ...);
+int dprintf(const ocdev_t ocdev, const char *format, ...);
 
 #endif // BEAVER_IO_PRINTF_H

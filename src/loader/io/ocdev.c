@@ -1,11 +1,11 @@
 #include <io/ocdev.h>
 
-static ocdev_t io_std_ocdev;
+static ocdev_t std_ocdev;
 
-void io_set_std_ocdev(const ocdev_t ocdev) {
-    io_std_ocdev = ocdev;
+void set_std_ocdev(const ocdev_t ocdev) {
+    std_ocdev = ocdev;
 }
 
-ocdev_t io_get_std_ocdev(void) {
-    return io_std_ocdev;
+ocdev_t get_std_ocdev(void) {
+    return std_ocdev;
 }

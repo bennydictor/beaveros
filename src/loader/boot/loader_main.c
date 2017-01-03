@@ -8,44 +8,44 @@
 #include <stddef.h>
 #include <cpuid.h>
 
-static void print_module_tag(boot_info_module_tag_t *tag) {
-    io_printf("   start: %#.8x\n", tag->mod_start);
-    io_printf("     end: %#.8x\n", tag->mod_end);
-    io_printf("  string: %s\n", tag->string);
+static void print_module_tag(multiboot2_module_tag_t *tag) {
+    printf("   start: %#.8x\n", tag->mod_start);
+    printf("     end: %#.8x\n", tag->mod_end);
+    printf("  string: %s\n", tag->string);
 }
 
 void loader_main(uint32_t eax, uint32_t ebx) {
     vga_init();
     vga_set_foreground(COLOR_LIGHT_GREEN);
 
-    io_set_std_ocdev(vga_get_ocdev());
+    set_std_ocdev(vga_get_ocdev());
 
     ASSERT(eax == 0x36d76289);
 
-    boot_info_fixed_part_t *boot_info_header = (void *) ebx;
-    io_printf("Boot info size: %u bytes\n", boot_info_header->total_size);
+    multiboot2_fixed_part_t *multiboot2_header = (void *) ebx;
+    printf("Boot info size: %u bytes\n", multiboot2_header->total_size);
 
     uint32_t kernel_start = 0, kernel_end = 0;
 
-    boot_info_memory_map_t *mmap = NULL;
-    boot_info_basic_memory_info_t *meminfo = NULL;
+    multiboot2_memory_map_t *mmap = NULL;
+    multiboot2_basic_memory_info_t *meminfo = NULL;
 
-    boot_info_tag_header_t *tag = (void *) boot_info_header + sizeof(boot_info_fixed_part_t);
-    while (tag->type != BOOT_INFO_END_TAG) {
-        io_printf("TAG type: %2u, size: %2u\n", tag->type, tag->size);
-        if (tag->type == BOOT_INFO_MODULE_TAG) {
-            boot_info_module_tag_t *module_tag = (boot_info_module_tag_t *) tag;
+    multiboot2_tag_header_t *tag = (void *) multiboot2_header + sizeof(multiboot2_fixed_part_t);
+    while (tag->type != MULTIBOOT2_END_TAG) {
+        printf("TAG type: %2u, size: %2u\n", tag->type, tag->size);
+        if (tag->type == MULTIBOOT2_MODULE_TAG) {
+            multiboot2_module_tag_t *module_tag = (multiboot2_module_tag_t *) tag;
             print_module_tag(module_tag);
             if (!strcmp("BEAVEROS", (char *) module_tag->string)) {
                 kernel_start = module_tag->mod_start;
                 kernel_end = module_tag->mod_end;
             }
-        } else if (tag->type == BOOT_INFO_MEMORY_MAP_TAG) {
-            mmap = (boot_info_memory_map_t *) tag;
-        } else if (tag->type == BOOT_INFO_BASIC_MEMORY_TAG) {
-            meminfo = (boot_info_basic_memory_info_t *) tag;
+        } else if (tag->type == MULTIBOOT2_MEMORY_MAP_TAG) {
+            mmap = (multiboot2_memory_map_t *) tag;
+        } else if (tag->type == MULTIBOOT2_BASIC_MEMORY_TAG) {
+            meminfo = (multiboot2_basic_memory_info_t *) tag;
         }
-        tag = boot_info_next_tag(tag);
+        tag = multiboot2_next_tag(tag);
     }
 
     if (!kernel_start) {
@@ -53,17 +53,17 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     }
 
     if (meminfo != NULL) {
-        io_printf("Basic memory info:\nmem_lower: %#.8x; mem_upper: %#.8x\n",
+        printf("Basic memory info:\nmem_lower: %#.8x; mem_upper: %#.8x\n",
                     meminfo->mem_lower,
                     meminfo->mem_upper);
     }
 
     if (mmap != NULL) {
-        io_printf("Memory map:\n");
-        uint32_t entries = (mmap->size - sizeof(boot_info_memory_map_t)) / mmap->entry_size;
+        printf("Memory map:\n");
+        uint32_t entries = (mmap->size - sizeof(multiboot2_memory_map_t)) / mmap->entry_size;
         for (uint32_t i = 0; i < entries; ++i) {
-            boot_info_memory_map_entry_t *entry = mmap->entries + i;
-            io_printf("base_addr: %#.8llx; length: %#.8llx; type: %d\n",
+            multiboot2_memory_map_entry_t *entry = mmap->entries + i;
+            printf("base_addr: %#.8llx; length: %#.8llx; type: %d\n",
                         entry->base_addr,
                         entry->length,
                         entry->type);
@@ -73,5 +73,5 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     ASSERT(check_cpuid());
     ASSERT(check_long_mode());
 
-    io_printf("kernel_main() done\n");
+    printf("kernel_main() done\n");
 }

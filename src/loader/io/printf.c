@@ -10,7 +10,7 @@ typedef struct {
     char specifier;
     uint16_t width, precision;
     uint16_t length;
-} io_printf_format_specifier_t;
+} printf_format_specifier_t;
 
 #define IO_PRINTF_FLAG_PLUS (1)
 #define IO_PRINTF_FLAG_MINUS (2)
@@ -29,7 +29,7 @@ typedef struct {
 // No, they are not. Please, implement them.
 // TODO j, z, t, L
 
-static uint16_t io_internal_atoi(const char **str) {
+static uint16_t atoi(const char **str) {
     uint16_t ans = 0;
     while (**str >= '0' && **str <= '9') {
         ans *= 10;
@@ -40,10 +40,10 @@ static uint16_t io_internal_atoi(const char **str) {
 }
 
 // Format specifier structure: %[flags][width][.precision][length]specifier
-static io_printf_format_specifier_t io_parse_format_specifier(const char **format_ptr,
+static printf_format_specifier_t parse_format_specifier(const char **format_ptr,
                                                                 va_list *vlist_ptr) {
     const char *format = *format_ptr;
-    io_printf_format_specifier_t ans;
+    printf_format_specifier_t ans;
     ans.flags = 0;
 
     // Flags
@@ -79,7 +79,7 @@ static io_printf_format_specifier_t io_parse_format_specifier(const char **forma
         ans.width = va_arg(*vlist_ptr, int);
         ++format;
     } else {
-        ans.width = io_internal_atoi(&format);
+        ans.width = atoi(&format);
     }
 
     // Precision
@@ -91,7 +91,7 @@ static io_printf_format_specifier_t io_parse_format_specifier(const char **forma
             ans.precision = va_arg(*vlist_ptr, int);
             ++format;
         } else {
-            ans.precision = io_internal_atoi(&format);
+            ans.precision = atoi(&format);
         }
     }
 
@@ -138,7 +138,7 @@ static io_printf_format_specifier_t io_parse_format_specifier(const char **forma
 #define BUF_SIZE 25
 
 #define PRINTER_HEADER(suffix, type) \
-bool io_internal_print_##suffix (ocdev_t ocdev, io_printf_format_specifier_t spec, type d)
+bool print_##suffix (ocdev_t ocdev, printf_format_specifier_t spec, type d)
 
 #define INTEGER_PRINTER(suffix, type, base, prefix, uppercase) \
 PRINTER_HEADER(suffix, type) { \
@@ -202,25 +202,25 @@ GEN_PRINTERS(h, 16, unsigned, "0x", false);
 GEN_PRINTERS(H, 16, unsigned, "0X", true);
 
 #define SUBROUTINE_HEADER(suffix) \
-bool io_printf_subroutine_##suffix(ocdev_t ocdev, \
-                                    io_printf_format_specifier_t spec, \
+bool printf_subroutine_##suffix(ocdev_t ocdev, \
+                                    printf_format_specifier_t spec, \
                                     va_list *vlist_ptr)
 
 #define GEN_SUBROUTINE(subroutine_suffix, printer_type) \
 SUBROUTINE_HEADER(subroutine_suffix) { \
     switch (spec.length) { \
         case IO_PRINTF_LENGTH_none: \
-            return io_internal_print_##printer_type##_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
+            return print_##printer_type##_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
         case IO_PRINTF_LENGTH_hh: \
-            return io_internal_print_##printer_type##_char(ocdev, spec, va_arg(*vlist_ptr, int)); \
+            return print_##printer_type##_char(ocdev, spec, va_arg(*vlist_ptr, int)); \
         case IO_PRINTF_LENGTH_h: \
-            return io_internal_print_##printer_type##_s_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
+            return print_##printer_type##_s_int(ocdev, spec, va_arg(*vlist_ptr, int)); \
         case IO_PRINTF_LENGTH_l: \
-            return io_internal_print_##printer_type##_l_int(ocdev, \
+            return print_##printer_type##_l_int(ocdev, \
                                                             spec, \
                                                             va_arg(*vlist_ptr, long int)); \
         case IO_PRINTF_LENGTH_ll: \
-            return io_internal_print_##printer_type##_ll_int(ocdev, \
+            return print_##printer_type##_ll_int(ocdev, \
                                                                 spec, \
                                                                 va_arg(*vlist_ptr, long long int)); \
     } \
@@ -228,7 +228,7 @@ SUBROUTINE_HEADER(subroutine_suffix) { \
 } \
 
 GEN_SUBROUTINE(d, s);
-SUBROUTINE_HEADER(i) __attribute__ ((alias("io_printf_subroutine_d")));
+SUBROUTINE_HEADER(i) __attribute__ ((alias("printf_subroutine_d")));
 GEN_SUBROUTINE(u, u);
 GEN_SUBROUTINE(o, o);
 GEN_SUBROUTINE(x, h);
@@ -254,40 +254,40 @@ PRINTER_HEADER(string, char *) {
 
 SUBROUTINE_HEADER(s) {
     if (spec.length == IO_PRINTF_LENGTH_none) {
-        return io_internal_print_string(ocdev, spec, va_arg(*vlist_ptr, char *));
+        return print_string(ocdev, spec, va_arg(*vlist_ptr, char *));
     }
     return false;
 }
 
-int io_printf(const char *format, ...) {
+int printf(const char *format, ...) {
     va_list args;
     va_start(args, format);
-    int ans = io_vdprintf(io_get_std_ocdev(), format, args);
+    int ans = vdprintf(get_std_ocdev(), format, args);
     va_end(args);
     return ans;
 }
 
-int io_dprintf(const ocdev_t ocdev, const char *format, ...) {
+int dprintf(const ocdev_t ocdev, const char *format, ...) {
     va_list args;
     va_start(args, format);
-    int ans = io_vdprintf(ocdev, format, args);
+    int ans = vdprintf(ocdev, format, args);
     va_end(args);
     return ans;
 }
 
-int io_vprintf(const char *format, va_list vlist) {
-    return io_vdprintf(io_get_std_ocdev(), format, vlist);
+int vprintf(const char *format, va_list vlist) {
+    return vdprintf(get_std_ocdev(), format, vlist);
 }
 
 #define CASE_SUBROUTINE(symbol, suffix) \
     case symbol : \
-        io_printf_subroutine_##suffix (ocdev, spec, &vlist); \
+        printf_subroutine_##suffix (ocdev, spec, &vlist); \
         break;
 
-int io_vdprintf(const ocdev_t ocdev, const char *format, va_list vlist) {
+int vdprintf(const ocdev_t ocdev, const char *format, va_list vlist) {
     while (*format) {
         if (*format == '%') {
-            io_printf_format_specifier_t spec = io_parse_format_specifier(&format, &vlist);
+            printf_format_specifier_t spec = parse_format_specifier(&format, &vlist);
             switch (spec.specifier) {
                 CASE_SUBROUTINE('d', d);
                 CASE_SUBROUTINE('i', i);
