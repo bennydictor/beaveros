@@ -1,5 +1,5 @@
-#ifndef BEAVER_PAGING_PAGING_H
-#define BEAVER_PAGING_PAGING_H
+#ifndef BEAVER_PAGING_H
+#define BEAVER_PAGING_H
 
 #include <stdint.h>
 
@@ -19,4 +19,4 @@ typedef struct {
     uint64_t no_execute : 1;
 } page_table_entry_t;
 
-#endif // BEAVER_PAGING_PAGING_H
+#endif // BEAVER_PAGING_H

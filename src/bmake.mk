@@ -80,7 +80,7 @@ $(TARGET): $(OBJS) $(SRC)/linker.ld | $(BMAKE)
 $(OBJ)/%.c.o: $(SRC)/%.c | $$(@D) $$(patsubst $(OBJ)$$(PERCENT),$(BMAKE)$$(PERCENT),$$(@D))
 	$(CCCOMPILE) -c $< -o $@
 	@echo $(CCCOMPILE) >$(BMAKE)/$*.c.b
-	@$(CCCOMPILE) -M $< | sed -E 's:^$*.o:$(OBJ)/$*.c.o:' >$(BMAKE)/$*.c.d
+	@$(CCCOMPILE) -M $< | sed -E 's:^$(notdir $*).o:$(OBJ)/$*.c.o:' >$(BMAKE)/$*.c.d
 
 $(OBJ)/%.s.o: $(SRC)/%.s | $$(@D) $$(patsubst $(OBJ)$$(PERCENT),$(BMAKE)$$(PERCENT),$$(@D))
 	$(ASCOMPILE) $< -o $@
