@@ -131,7 +131,7 @@ typedef struct multiboot2_framebuffer_info {
     uint8_t color_info[0];
 } __attribute__ ((packed)) multiboot2_framebuffer_info_t;
 
-multiboot2_tag_header_t *multiboot2_next_tag(multiboot2_tag_header_t *tag);
+multiboot2_tag_header_t *multiboot2_next_tag(multiboot2_tag_header_t *);
 
 #define MULTIBOOT2_END_TAG (0)
 #define MULTIBOOT2_CMD_TAG (1)
