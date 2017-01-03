@@ -5,6 +5,7 @@
 #include <boot_info/tags.h>
 #include <elf64/elf64.h>
 #include <string.h>
+#include <stddef.h>
 
 /*
 void kernel_internal_printf_testing(void) {
@@ -28,7 +29,7 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
     io_set_std_ocdev(vga_get_ocdev());
 
     io_printf("\n\n>>> Hello world!\n");
-    io_printf("Registers values: EAX = %#.8x, EBX = %#.8x\n", eax, ebx);
+//    io_printf("Registers values: EAX = %#.8x, EBX = %#.8x\n", eax, ebx);
     ASSERT(eax == 0x36d76289);
 
     boot_info_fixed_part_t *boot_info_header = (void *)ebx;
@@ -36,17 +37,24 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
 
     uint32_t kernel_start = 0, kernel_end = 0;
     
+    boot_info_memory_map_t *mmap = NULL;
+    boot_info_basic_memory_info_t *meminfo = NULL;
+
     boot_info_tag_header_t *tag = (void *)(boot_info_header) + sizeof(boot_info_fixed_part_t);
     while (tag->type != BOOT_INFO_END_TAG) {
-        io_printf("TAG type: %2u, size: %2u\n", tag->type, tag->size);
+//        io_printf("TAG type: %2u, size: %2u\n", tag->type, tag->size);
         if (tag->type == BOOT_INFO_MODULE_TAG) {
             boot_info_module_tag_t *module_tag = (boot_info_module_tag_t *)tag;
-            kernel_internal_print_module_tag(module_tag);
+//            kernel_internal_print_module_tag(module_tag);
             if (!strcmp("BEAVEROS", (char *)module_tag->string)) {
                 kernel_start = module_tag->mod_start;
                 kernel_end = module_tag->mod_end;
             }
-        } 
+        } else if (tag->type == BOOT_INFO_MEMORY_MAP_TAG) {
+            mmap = (boot_info_memory_map_t *)tag;
+        } else if (tag->type == BOOT_INFO_BASIC_MEMORY_TAG) {
+            meminfo = (boot_info_basic_memory_info_t *)tag;
+        }
         tag = boot_info_next_tag(tag);
     }
 
@@ -54,7 +62,21 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
         PANIC("Kernel not found");
     }
 
-    print_elf64((void *)kernel_start);
+    // print_elf64((void *)kernel_start);
+    
+    if (meminfo != NULL) {
+        io_printf("Basic memory info:\nmem_lower: %#.8x; mem_upper: %#.8x\n", meminfo->mem_lower, meminfo->mem_upper);
+
+    }
+    
+    if (mmap != NULL) {
+        io_printf("Memory map:\n");
+        uint32_t entries = (mmap->size - sizeof(boot_info_memory_map_t)) / mmap->entry_size;
+        for (uint32_t i = 0; i < entries; ++i) {
+            boot_info_memory_map_entry_t *entry = mmap->entries + i;
+            io_printf("base_addr: %#.8llx; length: %#.8llx; type: %d\n", entry->base_addr, entry->length, entry->type);
+        }
+    }
 
     io_printf("kernel_main() done\n");
 }

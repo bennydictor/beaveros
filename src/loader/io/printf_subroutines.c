@@ -35,7 +35,7 @@ PRINTER_HEADER(suffix, type) { \
         sign_c = ' '; \
     } \
     char *buf_writer = buf + BUF_SIZE - 1; \
-    int prefix_len = (use_prefix && d) ? strlen(prefix) : 0; \
+    int prefix_len = (use_prefix) ? strlen(prefix) : 0; /* I want to print 0x0 instead of 0 */ \
     while (d > 0) { \
         *(--buf_writer) = DIGITS[d % (base)]; \
         d /= (base); \
