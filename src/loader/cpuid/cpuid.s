@@ -1,41 +1,45 @@
 .section    .text
 .globl      check_cpuid
-.type       check_cpuid,    @function
+.type       check_cpuid,        @function
+
+.set        FLAGS_ID_BIT,       1 << 21
 
 check_cpuid:
     pushfl
     pop     %eax
-    mov     %eax,           %ecx
-    xorl    $(1 << 21),     %eax
+    mov     %eax,               %ecx
+    xor     $FLAGS_ID_BIT,      %eax
     push    %eax
     popfl
     pushfl
-    popl    %eax
+    pop     %eax
     push    %ecx
     popfl
-    cmp     %ecx,           %eax
-    mov     $0,             %eax
+    cmp     %ecx,               %eax
+    mov     $0,                 %eax
     sete    %al
-    xor     $1,             %eax
+    xor     $1,                 %eax
     ret
 
-.section .text
-.globl check_long_mode
-.type check_long_mode, @function
+.section    .text
+.globl      check_long_mode
+.type       check_long_mode,    @function
+
+.set        CPUID_LM_BIT,       1 << 29
 
 check_long_mode:
-    movl $0x80000000, %eax
+    mov     $0x80000000,        %eax
     cpuid
-    cmpl $0x80000001, %eax
-    jb .no_long_mode
+    cmp     $0x80000001,        %eax
+    jb      .LnoLongMode
 
-    movl $0x80000001, %eax
+    mov     $0x80000001,        %eax
     cpuid
-    testl $(1 << 29), %edx
-    jz .no_long_mode
+    test    $CPUID_LM_BIT,      %edx
+    jz      .LnoLongMode
 
-    movl $1, %eax
+    mov     $1,                 %eax
     ret
-.no_long_mode:
-    movl $0, %eax
+.LnoLongMode:
+    movl    $0,                 %eax
     ret
