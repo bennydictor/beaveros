@@ -16,6 +16,8 @@ WITH_DEBUG_ASFLAGS		:= --gen-debug
 WITHOUT_DEBUG_CFLAGS	:= -O2
 WITHOUT_DEBUG_LDFLAGS	:= -O2
 
+COMPRESS				:= gzip
+
 # Do not change below this line, unless you know what are you doing
 
 MODULES			:= $(shell find src -maxdepth 1 -mindepth 1 -type d)
@@ -56,7 +58,7 @@ run: $(IMAGE)
 	@qemu-system-x86_64 $(IMAGE)
 
 dist: clean
-	tar -cvf $(DISTNAME).tar --exclude=$(DISTNAME).tar .
+	tar -cvf $(DISTNAME).tar --exclude=$(DISTNAME).tar --exclude-vcs --exclude-vcs-ignores .
 	$(COMPRESS) $(DISTNAME).tar
 
 .PHONY: all clean dist run
