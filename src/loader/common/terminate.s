@@ -1,6 +1,6 @@
-.section .text
-.globl terminate
-terminate:
-    cli
-    hlt
-    jmp terminate
+.section    .text
+.globl      terminate
+.type       terminate,  @function
+terminate:  cli
+.Lhlt:      hlt
+            jmp .Lhlt
