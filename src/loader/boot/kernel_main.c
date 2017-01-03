@@ -1,20 +1,19 @@
-#include <vga/vga.h>
+#include <vga.h>
 #include <io/stddev.h>
 #include <io/printf.h>
 #include <assert.h>
-#include <boot_info/tags.h>
-#include <elf64/elf64.h>
+#include <multiboot2.h>
+#include <elf64.h>
 #include <string.h>
 #include <stddef.h>
-#include <boot/check_cpuid.h>
-#include <boot/check_long_mode.h>
+#include <cpuid.h>
 
 /*
 void kernel_internal_printf_testing(void) {
     io_printf("Printf testing (specifier is %%+-#08.3{d,o,x} ): \n");
     io_printf("%+-#08.3d%+-#08.3o%+-#08.3x\n", 100, 100, 100);
     io_printf("%*s%*s%*s\n", 8, "Dec", 8, "Oct", 8, "Hex");
-    io_printf("I can even print symbols: %c\n", 'q'); 
+    io_printf("I can even print symbols: %c\n", 'q');
 }
 */
 
@@ -38,7 +37,7 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
     io_printf("Boot info size: %u bytes\n", boot_info_header->total_size);
 
     uint32_t kernel_start = 0, kernel_end = 0;
-    
+
     boot_info_memory_map_t *mmap = NULL;
     boot_info_basic_memory_info_t *meminfo = NULL;
 
@@ -68,7 +67,7 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
         io_printf("Basic memory info:\nmem_lower: %#.8x; mem_upper: %#.8x\n", meminfo->mem_lower, meminfo->mem_upper);
 
     }
-    
+
     if (mmap != NULL) {
         io_printf("Memory map:\n");
         uint32_t entries = (mmap->size - sizeof(boot_info_memory_map_t)) / mmap->entry_size;
@@ -81,7 +80,7 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
     ASSERT(check_cpuid());
     ASSERT(check_long_mode());
 
-    
+
 
     io_printf("kernel_main() done\n");
 }

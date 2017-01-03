@@ -1,4 +1,4 @@
-#include <vga/vga.h>
+#include <vga.h>
 #include <io/portio.h>
 
 uint16_t *vga_buffer;
@@ -51,7 +51,7 @@ void vga_init(void) {
 
 void vga_putc(char c) {
     if (c == '\b') {
-        if (vga_x /* > 0*/) { 
+        if (vga_x /* > 0*/) {
             --vga_x;
         }
     } else if (c == '\t') {

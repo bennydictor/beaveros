@@ -1,5 +1,5 @@
 #include <panic.h>
-#include <vga/vga.h>
+#include <vga.h>
 #include <io/printf.h>
 
 void panic(const char *msg, const char *filename, uint32_t line) {

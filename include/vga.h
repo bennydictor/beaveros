@@ -1,5 +1,5 @@
-#ifndef BEAVER_VGA_VGA_H
-#define BEAVER_VGA_VGA_H
+#ifndef BEAVER_VGA_H
+#define BEAVER_VGA_H
 
 #include <stdint.h>
 #include <io/output_character_device.h>
@@ -42,4 +42,4 @@ void vga_set_background(vga_color_t color);
 
 ocdev_t vga_get_ocdev(void);
 
-#endif // BEAVER_VGA_VGA_H
+#endif // BEAVER_VGA_H

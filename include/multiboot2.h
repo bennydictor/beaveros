@@ -1,5 +1,5 @@
-#ifndef BEAVER_BOOT_INFO_TAGS_H
-#define BEAVER_BOOT_INFO_TAGS_H
+#ifndef BEAVER_MULTIBOOT2_H
+#define BEAVER_MULTIBOOT2_H
 
 #include <stdint.h>
 
@@ -145,4 +145,4 @@ boot_info_tag_header_t *boot_info_next_tag(boot_info_tag_header_t *tag);
 #define BOOT_INFO_ELF_SYMBOLS_TAG (9)
 #define BOOT_INFO_APM_TABLE_TAG (10)
 
-#endif // BEAVER_BOOT_INFO_TAGS_H
+#endif // BEAVER_MULTIBOOT2_H

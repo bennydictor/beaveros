@@ -1,5 +1,5 @@
-#ifndef BEAVER_ELF64_ELF64_H
-#define BEAVER_ELF64_ELF64_H
+#ifndef BEAVER_ELF64_H
+#define BEAVER_ELF64_H
 
 #include <stdint.h>
 
@@ -219,4 +219,4 @@ typedef struct {
 
 void print_elf64(void *);
 
-#endif // BEAVER_ELF64_ELF64_H
+#endif // BEAVER_ELF64_H

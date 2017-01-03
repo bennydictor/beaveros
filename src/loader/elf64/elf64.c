@@ -1,4 +1,4 @@
-#include <elf64/elf64.h>
+#include <elf64.h>
 #include <io/printf.h>
 #include <assert.h>
 
@@ -30,5 +30,5 @@ void print_elf64(void *data) {
     io_printf("Number of program header entries: %hd\n", elf_header->e_phnum);
     io_printf("Size of section header entry: %hd\n", elf_header->e_shentsize);
     io_printf("Number of section header entries: %hd\n", elf_header->e_shnum);
-    io_printf("Section name string table index: %hd\n", elf_header->e_shstrndx); 
+    io_printf("Section name string table index: %hd\n", elf_header->e_shstrndx);
 }
