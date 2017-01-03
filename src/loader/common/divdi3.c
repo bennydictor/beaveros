@@ -1,7 +1,26 @@
 #include <stdint.h>
 #include <stddef.h>
 
-uint64_t __udivmoddi4(uint64_t, uint64_t, uint64_t *);
+uint64_t __udivmoddi4(uint64_t num, uint64_t den, uint64_t *rem_p) {
+    uint64_t quot = 0, qbit = 1;
+    while ((int64_t) den >= 0) {
+        den <<= 1;
+        qbit <<= 1;
+    }
+    while (qbit) {
+        if (den <= num) {
+            num -= den;
+            quot += qbit;
+        }
+        den >>= 1;
+        qbit >>= 1;
+    }
+    if (rem_p) {
+        *rem_p = num;
+    }
+
+    return quot;
+}
 
 int64_t __divdi3(int64_t num, int64_t den) {
     int neg = 0;
