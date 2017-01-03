@@ -3,6 +3,10 @@
 
 #include <panic.h>
 
-#define ASSERT(expr) if (! (expr) ) { PANIC("Assertion failed: (" #expr ")"); }
+#define ASSERT(EXPR) do { \
+    if (!(EXPR)) { \
+        PANIC("Assertion failed: (" #EXPR ")"); \
+    } \
+} while (0)
 
 #endif // BEAVER_ASSERT_H

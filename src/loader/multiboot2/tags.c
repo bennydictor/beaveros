@@ -1,4 +1,4 @@
-#include <boot_info/tags.h>
+#include <multiboot2.h>
 
 boot_info_tag_header_t *boot_info_next_tag(boot_info_tag_header_t *tag) {
     uint32_t raw_ptr = (uint32_t)(tag);

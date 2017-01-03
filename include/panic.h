@@ -3,9 +3,12 @@
 
 #include <stdint.h>
 
-#define PANIC(msg) panic(( msg ), __FILE__, __LINE__);
-void panic(const char *msg, const char *filename, uint32_t line);
-extern void terminate(void);
+#define PANIC(MSG) do { \
+    panic((MSG), __FILE__, __LINE__); \
+} while (0)
+
+void panic(const char *, const char *, uint32_t);
+void terminate(void);
 
 #endif // BEAVER_PANIC_H
 
