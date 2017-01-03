@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <boot/check_cpuid.h>
+#include <boot/check_long_mode.h>
 
 /*
 void kernel_internal_printf_testing(void) {
@@ -79,7 +80,8 @@ void kernel_main(uint32_t eax, uint32_t ebx) {
         }
     }
 
-    io_printf("%d\n", check_cpuid());
+    ASSERT(check_cpuid());
+    ASSERT(check_long_mode());
 
     io_printf("kernel_main() done\n");
 }
