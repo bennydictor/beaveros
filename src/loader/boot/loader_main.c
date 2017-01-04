@@ -24,7 +24,7 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     ASSERT(eax == 0x36d76289);
 
     multiboot2_fixed_part_t *multiboot2_header = (void *) ebx;
-    printf("Boot info size: %u bytes\n", multiboot2_header->total_size);
+    printf("Boot info size: %u bytes, start: %#.8x\n", multiboot2_header->total_size, ebx);
 
     uint32_t kernel_start = 0, kernel_end = 0;
 
@@ -33,9 +33,10 @@ void loader_main(uint32_t eax, uint32_t ebx) {
 
     multiboot2_tag_header_t *tag = (void *) multiboot2_header + sizeof(multiboot2_fixed_part_t);
     while (tag->type != MULTIBOOT2_END_TAG) {
-        printf("TAG type: %2u, size: %2u\n", tag->type, tag->size);
+//        printf("TAG type: %2u, size: %2u\n", tag->type, tag->size);
         if (tag->type == MULTIBOOT2_MODULE_TAG) {
             multiboot2_module_tag_t *module_tag = (multiboot2_module_tag_t *) tag;
+            printf("Module found:\n");
             print_module_tag(module_tag);
             if (!strcmp("BEAVEROS", (char *) module_tag->string)) {
                 kernel_start = module_tag->mod_start;

@@ -11,14 +11,17 @@ SECTIONS {
         *(.text)
     }
 
-    .data BLOCK(4K) : ALIGN(4K)
-    {
-        *(.data)
-    }
-
     .bss BLOCK(16K) : ALIGN(4K)
     {
         *(COMMON)
         *(.bss)
     }
+
+    .data BLOCK(4K) : ALIGN(4K)
+    {
+        *(.data)
+        *(.rodata)
+    }
+
+    end_loader = ALIGN(4K);
 }
