@@ -27,3 +27,7 @@ void *new_page(void) {
     used_memory += PAGE_SIZE;
     return ret;
 }
+
+void *get_used_memory(void) {
+    return used_memory;
+}

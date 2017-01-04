@@ -20,6 +20,7 @@ typedef struct {
 } page_table_entry_t;
 
 void extend_used_memory(void *);
+void *get_used_memory(void);
 void *new_page(void);
 
 #endif // BEAVER_PAGING_H

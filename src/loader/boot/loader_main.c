@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <cpuid.h>
+#include <paging.h>
 
 static void print_module_tag(multiboot2_module_tag_t *tag) {
     printf("   start: %#.8x\n", tag->mod_start);
@@ -25,6 +26,7 @@ void loader_main(uint32_t eax, uint32_t ebx) {
 
     multiboot2_fixed_part_t *multiboot2_header = (void *) ebx;
     printf("Boot info size: %u bytes, start: %#.8x\n", multiboot2_header->total_size, ebx);
+    extend_used_memory((void *) ebx + multiboot2_header->total_size);
 
     uint32_t kernel_start = 0, kernel_end = 0;
 
@@ -54,7 +56,7 @@ void loader_main(uint32_t eax, uint32_t ebx) {
         PANIC("Kernel not found");
     }
 
-    (void) kernel_end; // TODO something with it
+    extend_used_memory((void *) kernel_end);
 
     if (meminfo != NULL) {
         printf("Basic memory info:\nmem_lower: %#.8x; mem_upper: %#.8x\n",
@@ -76,6 +78,8 @@ void loader_main(uint32_t eax, uint32_t ebx) {
 
     ASSERT(check_cpuid());
     ASSERT(check_long_mode());
+
+    printf("First free page address: %#.8x\n", get_used_memory());
 
     printf("kernel_main() done\n");
 }
