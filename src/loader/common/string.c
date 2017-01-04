@@ -50,3 +50,11 @@ void *memmove(void *dest, const void *src, uint32_t num) {
 
     return dest;
 }
+
+void *memset(void *ptr, int val, uint32_t num) {
+    uint8_t *addr = ptr;
+    while (num--) {
+        addr[num] = val;
+    }
+    return ptr;
+}

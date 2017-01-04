@@ -23,4 +23,7 @@ void extend_used_memory(void *);
 void *get_used_memory(void);
 void *new_page(void);
 
+page_table_entry_t *create_entry(uint64_t, page_table_entry_t []);
+page_table_entry_t *create_table(void);
+
 #endif // BEAVER_PAGING_H

@@ -9,5 +9,6 @@ size_t strlen(const char *);
 const char *strchr(const char *, int);
 void *memcpy(void *, const void *, uint32_t);
 void *memmove(void *, const void *, uint32_t);
+void *memset(void *, int, uint32_t);
 
 #endif // BEAVER_STRING_H
