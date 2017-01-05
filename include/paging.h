@@ -4,26 +4,28 @@
 #include <stdint.h>
 
 typedef struct {
-    uint64_t present : 1;
-    uint64_t writable : 1;
-    uint64_t user_accessible : 1;
-    uint64_t write_through_caching : 1;
-    uint64_t disable_cache : 1;
-    uint64_t accessed : 1;
-    uint64_t dirty : 1;
-    uint64_t huge_page : 1;
-    uint64_t global : 1;
-    uint64_t low_free : 3;
-    uint64_t address : 40;
-    uint64_t high_free : 11;
-    uint64_t no_execute : 1;
+    uint64_t p : 1;
+    uint64_t rw : 1;
+    uint64_t us : 1;
+    uint64_t pwt : 1;
+    uint64_t pcd : 1;
+    uint64_t a : 1;
+    uint64_t d : 1;
+    uint64_t pat : 1;
+    uint64_t g : 1;
+    uint64_t avl_low : 3;
+    uint64_t addr : 40;
+    uint64_t avl_high : 11;
+    uint64_t nx : 1;
 } page_table_entry_t;
+
+extern page_table_entry_t *pml4;
 
 void extend_used_memory(void *);
 void *get_used_memory(void);
-void *new_page(void);
-
-page_table_entry_t *create_entry(uint64_t, page_table_entry_t []);
-page_table_entry_t *create_table(void);
+void *new_phys_page(void);
+void *new_phys_zero_page(void);
+void map_page(uint64_t, uint64_t);
+void identity_map(uint64_t);
 
 #endif // BEAVER_PAGING_H

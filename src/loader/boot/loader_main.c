@@ -79,6 +79,8 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     ASSERT(check_cpuid());
     ASSERT(check_long_mode());
 
+    identity_map(0x800000); // 8M
+
     printf("First free page address: %#.8x\n", get_used_memory());
 
     printf("kernel_main() done\n");
