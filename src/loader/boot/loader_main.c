@@ -4,6 +4,7 @@
 #include <string.h>
 #include <panic.h>
 #include <multiboot2.h>
+#include <elf64.h>
 #include <cpuid.h>
 #include <gdt.h>
 #include <idt.h>
@@ -48,7 +49,7 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     }
     setup_gdt();
     setup_idt();
-    setup_paging(0x800000); // 8M
+    setup_identity_paging(0x800000); // 8M
 
     printf("kernel_main() done\n");
 }
