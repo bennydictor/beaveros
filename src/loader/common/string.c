@@ -10,8 +10,8 @@ int strcmp(const char *str1, const char *str2) {
     return (int) *str1 - (int) *str2;
 }
 
-uint32_t strlen(const char *str) {
-    uint32_t ans = 0;
+size_t strlen(const char *str) {
+    size_t ans = 0;
     while (*str++) {
         ++ans;
     }
@@ -25,7 +25,7 @@ const char *strchr(const char *str, int character) {
     return *str ? str : NULL;
 }
 
-void *memcpy(void *dest, const void *src, uint32_t num) {
+void *memcpy(void *dest, const void *src, size_t num) {
     uint8_t *dest_copy = dest;
     const uint8_t *src_copy = src;
     while (num--) {
@@ -34,7 +34,7 @@ void *memcpy(void *dest, const void *src, uint32_t num) {
     return dest;
 }
 
-void *memmove(void *dest, const void *src, uint32_t num) {
+void *memmove(void *dest, const void *src, size_t num) {
     uint8_t *dest_copy = dest;
     const uint8_t *src_copy = src;
 
@@ -51,7 +51,7 @@ void *memmove(void *dest, const void *src, uint32_t num) {
     return dest;
 }
 
-void *memset(void *ptr, int val, uint32_t num) {
+void *memset(void *ptr, int val, size_t num) {
     uint8_t *addr = ptr;
     while (num--) {
         addr[num] = val;

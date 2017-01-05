@@ -14,7 +14,7 @@ start:
     jmp     .Lhlt
 
 .section    .loader_stack
-    .align 4
+    .align 8
 stack_bottom:
     .space  4 * 1024
 stack_top:

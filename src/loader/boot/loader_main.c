@@ -1,53 +1,37 @@
 #include <vga.h>
 #include <io/ocdev.h>
 #include <io/printf.h>
-#include <assert.h>
-#include <multiboot2.h>
-#include <elf64.h>
 #include <string.h>
-#include <stddef.h>
+#include <panic.h>
+#include <multiboot2.h>
 #include <cpuid.h>
+#include <gdt.h>
+#include <idt.h>
 #include <paging.h>
 
-static void print_module_tag(multiboot2_module_tag_t *tag) {
-    printf("   start: %#.8x\n", tag->mod_start);
-    printf("     end: %#.8x\n", tag->mod_end);
-    printf("  string: %s\n", tag->string);
-}
-
-__attribute__ ((force_align_arg_pointer))
 void loader_main(uint32_t eax, uint32_t ebx) {
     vga_init();
     vga_set_foreground(COLOR_LIGHT_GREEN);
 
     set_std_ocdev(vga_get_ocdev());
 
-    ASSERT(eax == 0x36d76289);
+    if (eax != 0x36d76289) {
+        PANIC("Not loaded by multiboot2 loader");
+    }
 
     multiboot2_fixed_part_t *multiboot2_header = (void *) ebx;
-    printf("Boot info size: %u bytes, start: %#.8x\n", multiboot2_header->total_size, ebx);
     extend_used_memory((void *) ebx + multiboot2_header->total_size);
 
-    uint32_t kernel_start = 0, kernel_end = 0;
-
-    multiboot2_memory_map_t *mmap = NULL;
-    multiboot2_basic_memory_info_t *meminfo = NULL;
+    void *kernel_start = 0, *kernel_end = 0;
 
     multiboot2_tag_header_t *tag = (void *) multiboot2_header + sizeof(multiboot2_fixed_part_t);
     while (tag->type != MULTIBOOT2_END_TAG) {
-//        printf("TAG type: %2u, size: %2u\n", tag->type, tag->size);
         if (tag->type == MULTIBOOT2_MODULE_TAG) {
             multiboot2_module_tag_t *module_tag = (multiboot2_module_tag_t *) tag;
-            printf("Module found:\n");
-            print_module_tag(module_tag);
             if (!strcmp("BEAVEROS", (char *) module_tag->string)) {
-                kernel_start = module_tag->mod_start;
-                kernel_end = module_tag->mod_end;
+                kernel_start = (void *) module_tag->mod_start;
+                kernel_end = (void *) module_tag->mod_end;
             }
-        } else if (tag->type == MULTIBOOT2_MEMORY_MAP_TAG) {
-            mmap = (multiboot2_memory_map_t *) tag;
-        } else if (tag->type == MULTIBOOT2_BASIC_MEMORY_TAG) {
-            meminfo = (multiboot2_basic_memory_info_t *) tag;
         }
         tag = multiboot2_next_tag(tag);
     }
@@ -56,32 +40,15 @@ void loader_main(uint32_t eax, uint32_t ebx) {
         PANIC("Kernel not found");
     }
 
-    extend_used_memory((void *) kernel_end);
-
-    if (meminfo != NULL) {
-        printf("Basic memory info:\nmem_lower: %#.8x; mem_upper: %#.8x\n",
-                    meminfo->mem_lower,
-                    meminfo->mem_upper);
+    if (!check_cpuid()) {
+        PANIC("CPU doesn't support cpuid instruction");
     }
-
-    if (mmap != NULL) {
-        printf("Memory map:\n");
-        uint32_t entries = (mmap->size - sizeof(multiboot2_memory_map_t)) / mmap->entry_size;
-        for (uint32_t i = 0; i < entries; ++i) {
-            multiboot2_memory_map_entry_t *entry = mmap->entries + i;
-            printf("base_addr: %#.8llx; length: %#.8llx; type: %d\n",
-                        entry->base_addr,
-                        entry->length,
-                        entry->type);
-        }
+    if (!check_long_mode()) {
+        PANIC("CPU doesn't support long mode");
     }
-
-    ASSERT(check_cpuid());
-    ASSERT(check_long_mode());
-
-    identity_map(0x800000); // 8M
-
-    printf("First free page address: %#.8x\n", get_used_memory());
+    setup_gdt();
+    setup_idt();
+    setup_paging(0x800000); // 8M
 
     printf("kernel_main() done\n");
 }

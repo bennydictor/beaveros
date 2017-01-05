@@ -41,7 +41,7 @@ static void vga_scroll(void) {
 }
 
 void vga_init(void) {
-    vga_buffer = (uint16_t *)0xb8000;
+    vga_buffer = (uint16_t *) 0xb8000;
     vga_width = 80;
     vga_height = 25;
     vga_set_color(COLOR_BLACK << 4 | COLOR_WHITE);
@@ -64,7 +64,7 @@ void vga_putc(char c) {
         vga_x = 0;
         ++vga_y;
     } else if (c >= ' ') {
-        vga_buffer[vga_x + vga_width * vga_y] = (uint16_t)(c) | ((uint16_t)(vga_color) << 8);
+        vga_buffer[vga_x + vga_width * vga_y] = (uint16_t) c | ((uint16_t) vga_color << 8);
         ++vga_x;
     }
 

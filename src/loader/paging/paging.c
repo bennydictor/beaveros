@@ -84,7 +84,7 @@ void map_page(uint64_t virt, uint64_t phys) {
     pte->rw = 1;
 }
 
-void identity_map(uint64_t addr) {
+void setup_paging(uint64_t addr) {
     for (uint64_t i = 0; i < addr; i += PAGE_SIZE) {
         map_page(i, i);
     }

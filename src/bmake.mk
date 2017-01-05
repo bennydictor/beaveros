@@ -74,7 +74,7 @@ all: $(TARGET)
 PERCENT := %
 
 $(TARGET): $(OBJS) $(SRC)/linker.ld | $(BMAKE)
-	$(LDCOMPILE) $^ -o $@
+	$(LDCOMPILE) $(OBJS) -o $@
 	@echo $(LDCOMPILE) >$(BMAKE)/$@.b
 
 $(OBJ)/%.c.o: $(SRC)/%.c | $$(@D) $$(patsubst $(OBJ)$$(PERCENT),$(BMAKE)$$(PERCENT),$$(@D))

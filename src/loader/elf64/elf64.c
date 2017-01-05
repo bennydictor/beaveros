@@ -3,7 +3,7 @@
 #include <assert.h>
 
 void print_elf64(void *data) {
-    Elf64_Ehdr_t *elf_header = data;
+    elf64_ehdr_t *elf_header = data;
     ASSERT(elf_header->e_ident[0] == 0x7f);
     ASSERT(elf_header->e_ident[1] == 'E');
     ASSERT(elf_header->e_ident[2] == 'L');

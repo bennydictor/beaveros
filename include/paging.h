@@ -26,6 +26,6 @@ void *get_used_memory(void);
 void *new_phys_page(void);
 void *new_phys_zero_page(void);
 void map_page(uint64_t, uint64_t);
-void identity_map(uint64_t);
+void setup_paging(uint64_t);
 
 #endif // BEAVER_PAGING_H
