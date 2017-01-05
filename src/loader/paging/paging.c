@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-extern void *end_loader;
-static void *used_memory = &end_loader;
+extern void *loader_end;
+static void *used_memory = &loader_end;
 
 #define PAGE_SIZE_BITS 12
 #define PAGE_SIZE (1 << PAGE_SIZE_BITS)
@@ -19,7 +19,7 @@ static void *align_address(void *addr, uint32_t align_bits) {
 }
 
 void extend_used_memory(void *new_addr) {
-    new_addr = align_address(new_addr, PAGE_SIZE_BITS); 
+    new_addr = align_address(new_addr, PAGE_SIZE_BITS);
     if (new_addr > used_memory) {
         used_memory = new_addr;
     }
@@ -48,7 +48,7 @@ page_table_entry_t *get_next_table(page_table_entry_t *table, uint32_t idx) {
         table[idx].writable = true;
         table[idx].address = new_table >> 12;
     }
-    return (page_table_entry_t *)(table[idx].address << 12); 
+    return (page_table_entry_t *)(table[idx].address << 12);
 }
 
 #define ADDR_PART(ADDR, LEVEL) ((ADDR << (12 + 9 * ((LEVEL) - 1))) & (PAGE_TABLE_SIZE - 1))
