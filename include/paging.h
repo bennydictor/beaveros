@@ -16,6 +16,9 @@
 #define PD_FLAGS        0xfff0000000000e3f
 #define PT_FLAGS        0xfff0000000000fff
 
+#define PAGE_SIZE_BITS  12 // 4K
+#define PAGE_SIZE       (1 << PAGE_SIZE_BITS)
+
 typedef struct {
     uint64_t present : 1;
     uint64_t read_write : 1;

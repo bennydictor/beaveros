@@ -2,6 +2,7 @@
 #define BEAVER_ELF64_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef uint64_t elf64_addr;
 typedef uint64_t elf64_off;
@@ -218,5 +219,6 @@ typedef struct {
 #define DT_HIPROC       0x7FFFFFFF
 
 void print_elf64(void *);
+bool load_elf64(void *, uint64_t *);
 
 #endif // BEAVER_ELF64_H

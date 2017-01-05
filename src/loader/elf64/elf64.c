@@ -1,34 +1,57 @@
 #include <elf64.h>
 #include <io/printf.h>
-#include <assert.h>
+#include <paging.h>
+#include <string.h>
+#include <math.h>
 
-void print_elf64(void *data) {
-    elf64_ehdr_t *elf_header = data;
-    ASSERT(elf_header->e_ident[0] == 0x7f);
-    ASSERT(elf_header->e_ident[1] == 'E');
-    ASSERT(elf_header->e_ident[2] == 'L');
-    ASSERT(elf_header->e_ident[3] == 'F');
+bool load_elf64(void *start, uint64_t *entry) {
+    elf64_ehdr_t *ehdr = start;
+    if (ehdr->e_ident[EI_MAG0] != 0x7f ||
+        ehdr->e_ident[EI_MAG1] != 'E' ||
+        ehdr->e_ident[EI_MAG2] != 'L' ||
+        ehdr->e_ident[EI_MAG3] != 'F') {
+        printf("ELF identification incorrect\n");
+        return false;
+    }
+    if (ehdr->e_ident[EI_CLASS] != ELFCLASS64 ||
+        ehdr->e_ident[EI_DATA] != ELFDATA2LSB) {
+        printf("Expected 64 bit little endian ELF\n");
+        return false;
+    }
+    if (ehdr->e_ident[EI_VERSION] != 1) {
+        printf("Expected ELF version 1\n");
+        return false;
+    }
+    if (ehdr->e_ident[EI_OSABI] != ELFOSABI_SYSV ||
+        ehdr->e_ident[EI_ABIVERSION] != 0) {
+        printf("Expected System V ABI version 0\n");
+        return false;
+    }
+    if (ehdr->e_type != ET_EXEC) {
+        printf("Expected executable\n");
+        return false;
+    }
+    *entry = ehdr->e_entry;
+    elf64_shdr_t *shdr = start + ehdr->e_shoff;
+    for (uint16_t si = 0; si < ehdr->e_shnum; ++si) {
+        if (shdr[si].sh_type == SHT_PROGBITS ||
+            shdr[si].sh_type == SHT_NOBITS) {
+            for (uint64_t i = 0; i < shdr[si].sh_size; i += PAGE_SIZE) {
+                void *page = new_phys_zero_page();
+                if (shdr[si].sh_type == SHT_PROGBITS) {
+                    memcpy(page, start + shdr[si].sh_offset, min(shdr[si].sh_size - i, PAGE_SIZE));
+                }
+                uint64_t flags = 0;
+                if (shdr[si].sh_flags & SHF_WRITE) {
+                    flags |= PAGE_RW_BIT;
+                }
+                if (!(shdr[si].sh_flags & SHF_EXECINSTR)) {
+                    flags |= PAGE_NX_BIT;
+                }
+                map_page(shdr[si].sh_addr + i, (uint64_t) (uint32_t) page + i, flags);
+            }
+        }
+    }
 
-    printf("Elf file detected\n==========================\n");
-    uint32_t idx = 4;
-    printf("File class: %hhd\n", elf_header->e_ident[idx++]);
-    printf("Data encoding: %hhd\n", elf_header->e_ident[idx++]);
-    printf("File version: %hhd\n", elf_header->e_ident[idx++]);
-    printf("OS/ABI identification: %hhd\n", elf_header->e_ident[idx++]);
-    printf("ABI version: %hhd\n", elf_header->e_ident[idx++]);
-    printf("Start of padding bytes: %hhd\n", elf_header->e_ident[idx++]);
-
-    printf("\nObject file type: %hd\n", elf_header->e_type);
-    printf("Machine type: %hd\n", elf_header->e_machine);
-    printf("Object file version: %ld\n", elf_header->e_version);
-    printf("Entry point address: %#llx\n", elf_header->e_entry);
-    printf("Program header offset: %#llx\n", elf_header->e_phoff);
-    printf("Section header offset: %#llx\n", elf_header->e_shoff);
-    printf("Processor-specific flags: %lx\n", elf_header->e_flags);
-    printf("ELF header size: %hd\n", elf_header->e_ehsize);
-    printf("Size of program header entry: %hd\n", elf_header->e_phentsize);
-    printf("Number of program header entries: %hd\n", elf_header->e_phnum);
-    printf("Size of section header entry: %hd\n", elf_header->e_shentsize);
-    printf("Number of section header entries: %hd\n", elf_header->e_shnum);
-    printf("Section name string table index: %hd\n", elf_header->e_shstrndx);
+    return true;
 }

@@ -6,8 +6,6 @@ extern void *loader_end;
 static void *used_memory = &loader_end;
 page_table_entry_t *pml4;
 
-#define PAGE_SIZE_BITS 12 // 4K
-#define PAGE_SIZE (1 << PAGE_SIZE_BITS)
 #define PAGE_TABLE_SIZE 512
 
 static void *align_address(void *addr, uint32_t align_bits) {

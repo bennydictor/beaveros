@@ -23,7 +23,7 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     multiboot2_fixed_part_t *multiboot2_header = (void *) ebx;
     extend_used_memory((void *) ebx + multiboot2_header->total_size);
 
-    void *kernel_start = 0, *kernel_end = 0;
+    void *kernel_start = 0;
 
     multiboot2_tag_header_t *tag = (void *) multiboot2_header + sizeof(multiboot2_fixed_part_t);
     while (tag->type != MULTIBOOT2_END_TAG) {
@@ -31,7 +31,6 @@ void loader_main(uint32_t eax, uint32_t ebx) {
             multiboot2_module_tag_t *module_tag = (multiboot2_module_tag_t *) tag;
             if (!strcmp("BEAVEROS", (char *) module_tag->string)) {
                 kernel_start = (void *) module_tag->mod_start;
-                kernel_end = (void *) module_tag->mod_end;
             }
         }
         tag = multiboot2_next_tag(tag);
@@ -39,6 +38,10 @@ void loader_main(uint32_t eax, uint32_t ebx) {
 
     if (!kernel_start) {
         PANIC("Kernel not found");
+    }
+    uint64_t kernel_entry;
+    if (!load_elf64(kernel_start, &kernel_entry)) {
+        PANIC("Can't load kernel");
     }
 
     if (!check_cpuid()) {
@@ -48,7 +51,6 @@ void loader_main(uint32_t eax, uint32_t ebx) {
         PANIC("CPU doesn't support long mode");
     }
     setup_gdt();
-    setup_idt();
     setup_identity_paging(0x800000); // 8M
 
     printf("kernel_main() done\n");
