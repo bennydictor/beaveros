@@ -11,10 +11,10 @@
 #define PAGE_G_BIT      (1LL << 8)
 #define PAGE_NX_BIT     (1LL << 63)
 
-#define PML4_FLAGS      0xfff0000000000e3f
-#define PDP_FLAGS       0xfff0000000000e3f
-#define PD_FLAGS        0xfff0000000000e3f
-#define PT_FLAGS        0xfff0000000000fff
+#define PML4_FLAGS      0xfff0000000000e3f // Acceptable Page Map Level 4 entry flags
+#define PDP_FLAGS       0xfff0000000000e3f // Acceptable Page Directory Pointer entry flags
+#define PD_FLAGS        0xfff0000000000e3f // Acceptable Page Directory entry flags
+#define PT_FLAGS        0xfff0000000000fff // Acceptable Page Table entry flags
 
 #define PAGE_SIZE_BITS  12 // 4K
 #define PAGE_SIZE       (1 << PAGE_SIZE_BITS)

@@ -44,12 +44,13 @@ void loader_main(uint32_t eax, uint32_t ebx) {
         PANIC("Kernel not found");
     }
     extend_used_memory(kernel_end);
+
+    setup_identity_paging(0x800000); // 8M
+
     uint64_t kernel_entry;
     if (!load_elf64(kernel_start, &kernel_entry)) {
         PANIC("Can't load kernel");
     }
-
-    setup_identity_paging(0x800000); // 8M
 
     printf("kernel_main() done\n");
 }
