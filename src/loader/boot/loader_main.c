@@ -12,7 +12,6 @@
 void loader_main(uint32_t eax, uint32_t ebx) {
     vga_init();
     vga_set_foreground(COLOR_LIGHT_GREEN);
-
     set_std_ocdev(vga_get_ocdev());
 
     if (eax != 0x36d76289) {
@@ -59,5 +58,5 @@ void loader_main(uint32_t eax, uint32_t ebx) {
         PANIC("Used memory is greater than 8M");
     }
 
-    enable_long_mode((uint32_t) kernel_entry);
+    enable_long_mode((void *) (uint32_t) kernel_entry);
 }

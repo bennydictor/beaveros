@@ -43,30 +43,30 @@ void map_page(uint64_t virt, uint64_t phys, uint64_t flags) {
     }
     page_table_entry_t *pml4e = pml4 + BITS(virt, 39, 48);
 
-    if (!pml4e->flags.present) {
-        pml4e->all = (uint32_t) new_phys_zero_page();
+    if (!(*pml4e & PAGE_P_BIT)) {
+        *pml4e = (uint32_t) new_phys_zero_page();
     }
-    page_table_entry_t *pdp = (void *) (uint32_t) (pml4e->all & PAGE_ADDR_BITS);
+    page_table_entry_t *pdp = (void *) (uint32_t) (*pml4e & PAGE_ADDR_BITS);
     page_table_entry_t *pdpe = pdp + BITS(virt, 30, 39);
 
-    if (!pdpe->flags.present) {
-        pdpe->all = (uint32_t) new_phys_zero_page();
+    if (!(*pdpe & PAGE_P_BIT)) {
+        *pdpe = (uint32_t) new_phys_zero_page();
     }
-    page_table_entry_t *pd = (void *) (uint32_t) (pdpe->all & PAGE_ADDR_BITS);
+    page_table_entry_t *pd = (void *) (uint32_t) (*pdpe & PAGE_ADDR_BITS);
     page_table_entry_t *pde = pd + BITS(virt, 21, 30);
 
-    if (!pde->flags.present) {
-        pde->all = (uint32_t) new_phys_zero_page();
+    if (!(*pde & PAGE_P_BIT)) {
+        *pde = (uint32_t) new_phys_zero_page();
     }
-    page_table_entry_t *pt = (void *) (uint32_t) (pde->all & PAGE_ADDR_BITS);
+    page_table_entry_t *pt = (void *) (uint32_t) (*pde & PAGE_ADDR_BITS);
     page_table_entry_t *pte = pt + BITS(virt, 12, 21);
 
-    pte->all = phys;
+    *pte = phys;
     flags |= PAGE_P_BIT;
-    *(uint64_t *) pml4e |= flags & PML4_FLAGS_MASK;
-    *(uint64_t *) pdpe |= flags & PDP_FLAGS_MASK;
-    *(uint64_t *) pde |= flags & PD_FLAGS_MASK;
-    *(uint64_t *) pte |= flags & PT_FLAGS_MASK;
+    *pml4e |= flags & PML4_FLAGS_MASK;
+    *pdpe |= flags & PDP_FLAGS_MASK;
+    *pde |= flags & PD_FLAGS_MASK;
+    *pte |= flags & PT_FLAGS_MASK;
 }
 
 void setup_identity_paging(void *addr) {
