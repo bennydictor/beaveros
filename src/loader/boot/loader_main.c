@@ -6,8 +6,8 @@
 #include <multiboot2.h>
 #include <elf64.h>
 #include <cpuid.h>
-#include <gdt.h>
 #include <paging.h>
+#include <long_mode.h>
 
 void loader_main(uint32_t eax, uint32_t ebx) {
     vga_init();
@@ -45,12 +45,19 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     }
     extend_used_memory(kernel_end);
 
-    setup_identity_paging(0x800000); // 8M
+    setup_identity_paging((void *) 0x800000); // 8M
 
     uint64_t kernel_entry;
     if (!load_elf64(kernel_start, &kernel_entry)) {
         PANIC("Can't load kernel");
     }
+    if (kernel_entry & 0xffffffff00000000LL) {
+        PANIC("Kernel entry point should be in 32-bit range");
+    }
 
-    printf("kernel_main() done\n");
+    if ((uint32_t) get_used_memory() > 0x800000) {
+        PANIC("Used memory is greater than 8M");
+    }
+
+    enable_long_mode((uint32_t) kernel_entry);
 }

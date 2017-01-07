@@ -1,24 +1,17 @@
 #include <paging.h>
 #include <string.h>
 #include <stdbool.h>
+#include <assert.h>
+
+#define BITS(X, L, H) (((X) >> (L)) & ((1 << ((H) - (L))) - 1))
+#define ALIGN_TO_NEXT_PAGE(X) ((void *) (((((uint32_t) (X)) - 1U) & ~(PAGE_SIZE - 1)) + PAGE_SIZE))
 
 extern void *loader_end;
 static void *used_memory = &loader_end;
 page_table_entry_t *pml4;
 
-#define PAGE_TABLE_SIZE 512
-
-static void *align_address(void *addr, uint32_t align_bits) {
-    uint32_t addr_val = (uint32_t) addr;
-    --addr_val;
-    addr_val >>= align_bits;
-    ++addr_val;
-    addr_val <<= align_bits;
-    return (void *) addr_val;
-}
-
 void extend_used_memory(void *new_addr) {
-    new_addr = align_address(new_addr, PAGE_SIZE_BITS);
+    new_addr = ALIGN_TO_NEXT_PAGE(new_addr);
     if (new_addr > used_memory) {
         used_memory = new_addr;
     }
@@ -40,46 +33,44 @@ void *new_phys_zero_page(void) {
     return ret;
 }
 
-#define BITS(X, L, H) (((X) >> (L)) & ((1 << ((H) - (L))) - 1))
-
 void map_page(uint64_t virt, uint64_t phys, uint64_t flags) {
+    ASSERT(BITS(virt, 47, 64) == 0 || BITS(virt, 47, 64) == 0xffff); // check sign extend
+    ASSERT((virt & (PAGE_SIZE - 1)) == 0); // check page is aligned
+    ASSERT((phys & ~PAGE_ADDR_BITS) == 0); // check page is alighed and address is 52-bit
+
     if (!pml4) {
         pml4 = new_phys_zero_page();
     }
-    uint16_t pml4_off = BITS(virt, 39, 48);
-    page_table_entry_t *pml4e = pml4 + pml4_off;
+    page_table_entry_t *pml4e = pml4 + BITS(virt, 39, 48);
 
-    if (!pml4e->present) {
-        pml4e->address = (uint64_t) (uint32_t) new_phys_zero_page() >> PAGE_SIZE_BITS;
+    if (!pml4e->flags.present) {
+        pml4e->all = (uint32_t) new_phys_zero_page();
     }
-    page_table_entry_t *pdp = (void *) (uint32_t) (pml4e->address << PAGE_SIZE_BITS);
-    uint16_t pdp_off = BITS(virt, 30, 39);
-    page_table_entry_t *pdpe = pdp + pdp_off;
+    page_table_entry_t *pdp = (void *) (uint32_t) (pml4e->all & PAGE_ADDR_BITS);
+    page_table_entry_t *pdpe = pdp + BITS(virt, 30, 39);
 
-    if (!pdpe->present) {
-        pdpe->address = (uint64_t) (uint32_t) new_phys_zero_page() >> PAGE_SIZE_BITS;
+    if (!pdpe->flags.present) {
+        pdpe->all = (uint32_t) new_phys_zero_page();
     }
-    page_table_entry_t *pd = (void *) (uint32_t) (pdpe->address << PAGE_SIZE_BITS);
-    uint16_t pd_off = BITS(virt, 21, 30);
-    page_table_entry_t *pde = pd + pd_off;
+    page_table_entry_t *pd = (void *) (uint32_t) (pdpe->all & PAGE_ADDR_BITS);
+    page_table_entry_t *pde = pd + BITS(virt, 21, 30);
 
-    if (!pde->present) {
-        pde->address = (uint64_t) (uint32_t) new_phys_zero_page() >> PAGE_SIZE_BITS;
+    if (!pde->flags.present) {
+        pde->all = (uint32_t) new_phys_zero_page();
     }
-    page_table_entry_t *pt = (void *) (uint32_t) (pde->address << PAGE_SIZE_BITS);
-    uint16_t pt_off = BITS(virt, 12, 21);
-    page_table_entry_t *pte = pt + pt_off;
+    page_table_entry_t *pt = (void *) (uint32_t) (pde->all & PAGE_ADDR_BITS);
+    page_table_entry_t *pte = pt + BITS(virt, 12, 21);
 
-    flags |= 1;
-    pte->address = phys >> PAGE_SIZE_BITS;
-    *(uint64_t *) pml4e |= flags & PML4_FLAGS;
-    *(uint64_t *) pdpe |= flags & PDP_FLAGS;
-    *(uint64_t *) pde |= flags & PD_FLAGS;
-    *(uint64_t *) pte |= flags & PT_FLAGS;
+    pte->all = phys;
+    flags |= PAGE_P_BIT;
+    *(uint64_t *) pml4e |= flags & PML4_FLAGS_MASK;
+    *(uint64_t *) pdpe |= flags & PDP_FLAGS_MASK;
+    *(uint64_t *) pde |= flags & PD_FLAGS_MASK;
+    *(uint64_t *) pte |= flags & PT_FLAGS_MASK;
 }
 
-void setup_identity_paging(uint64_t addr) {
-    for (uint64_t i = 0; i < addr; i += PAGE_SIZE) {
+void setup_identity_paging(void *addr) {
+    for (uint64_t i = 0; i < (uint64_t) (uint32_t) addr; i += PAGE_SIZE) {
         map_page(i, i, PAGE_RW_BIT | PAGE_G_BIT);
     }
 }

@@ -41,14 +41,9 @@ bool load_elf64(void *start, uint64_t *entry) {
                 if (shdr[si].sh_type == SHT_PROGBITS) {
                     memcpy(page, start + shdr[si].sh_offset, min(shdr[si].sh_size - i, PAGE_SIZE));
                 }
-                uint64_t flags = PAGE_G_BIT;
-                if (shdr[si].sh_flags & SHF_WRITE) {
-                    flags |= PAGE_RW_BIT;
-                }
-                if (!(shdr[si].sh_flags & SHF_EXECINSTR)) {
-                    flags |= PAGE_NX_BIT;
-                }
-                map_page(shdr[si].sh_addr + i, (uint64_t) (uint32_t) page + i, flags);
+                map_page(shdr[si].sh_addr + i,
+                            (uint64_t) (uint32_t) page + i,
+                            PAGE_RW_BIT | PAGE_G_BIT);
             }
         }
     }
