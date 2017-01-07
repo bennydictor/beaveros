@@ -50,13 +50,10 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     if (!load_elf64(kernel_start, &kernel_entry)) {
         PANIC("Can't load kernel");
     }
-    if (kernel_entry & 0xffffffff00000000LL) {
-        PANIC("Kernel entry point should be in 32-bit range");
-    }
 
     if ((uint32_t) get_used_memory() > 0x800000) {
         PANIC("Used memory is greater than 8M");
     }
 
-    enable_long_mode((void *) (uint32_t) kernel_entry);
+    enable_long_mode(kernel_entry);
 }

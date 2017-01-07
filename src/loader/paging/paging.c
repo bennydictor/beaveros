@@ -34,7 +34,7 @@ void *new_phys_zero_page(void) {
 }
 
 void map_page(uint64_t virt, uint64_t phys, uint64_t flags) {
-    ASSERT(BITS(virt, 47, 64) == 0 || BITS(virt, 47, 64) == 0xffff); // check sign extend
+    ASSERT(BITS(virt, 47, 64) == 0 || BITS(virt, 47, 64) == 0x1ffff); // check sign extend
     ASSERT((virt & (PAGE_SIZE - 1)) == 0); // check page is aligned
     ASSERT((phys & ~PAGE_ADDR_BITS) == 0); // check page is alighed and address is 52-bit
 
