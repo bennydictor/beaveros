@@ -43,7 +43,7 @@ enable_long_mode:
 
 .code64
 .Ljmp64:
-    jmp     8(%rbp)
+    jmp     *8(%rbp)
 
 .section    .rodata
 gdt64:

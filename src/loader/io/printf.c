@@ -125,14 +125,6 @@ static printf_format_specifier_t parse_format_specifier(const char **format_ptr,
     return ans;
 }
 
-#define INIT_PRINTF_SUBROUTINE \
-    bool left_justify = spec.flags & IO_PRINTF_FLAG_MINUS; \
-    bool forced_sign = spec.flags & IO_PRINTF_FLAG_PLUS; \
-    bool space_for_sign = spec.flags & IO_PRINTF_FLAG_SPACE; \
-    bool use_prefix = spec.flags & IO_PRINTF_FLAG_SHARP; \
-    bool pad_with_zeroes = spec.flags & IO_PRINTF_FLAG_ZERO; \
-    bool precision_specified = spec.flags & IO_PRINTF_FLAG_PRECISION_SPECIFIED;
-
 #define INIT_DIGITS(UPPERCASE) \
     const char *DIGITS = UPPERCASE ? "0123456789ABCDEF" : "0123456789abcdef";
 
@@ -149,29 +141,28 @@ bool print_##SUFFIX(ocdev_t ocdev, printf_format_specifier_t spec, TYPE d)
 
 #define INTEGER_PRINTER(SUFFIX, TYPE, BASE, PREFIX, UPPERCASE, SIGN_CHECK) \
 PRINTER_HEADER(SUFFIX, TYPE) { \
-    INIT_PRINTF_SUBROUTINE; \
     INIT_DIGITS(UPPERCASE); \
     char buf[BUF_SIZE]; \
     buf[BUF_SIZE - 1] = 0; \
     char sign_c = 0; \
-    SIGN_CHECK if (forced_sign) { \
+    SIGN_CHECK if (spec.flags & IO_PRINTF_FLAG_PLUS) { \
         sign_c = '+'; \
-    } else if (space_for_sign) { \
+    } else if (spec.flags & IO_PRINTF_FLAG_SPACE) { \
         sign_c = ' '; \
     } \
     char *buf_writer = buf + BUF_SIZE - 1; \
-    int prefix_len = (use_prefix) ? strlen(PREFIX) : 0; /* I want to print 0x0 instead of 0 */ \
+    int prefix_len = (spec.flags & IO_PRINTF_FLAG_SHARP) ? strlen(PREFIX) : 0; /* I want to print 0x0 instead of 0 */ \
     while (d > 0) { \
         *(--buf_writer) = DIGITS[d % (BASE)]; \
         d /= (BASE); \
     } \
-    if (!precision_specified) { \
+    if (!(spec.flags & IO_PRINTF_FLAG_PRECISION_SPECIFIED)) { \
         spec.precision = 1; \
     } \
     int digits = (buf + BUF_SIZE - 1) - buf_writer; \
     int non_space_characters = (sign_c ? 1 : 0) + max(spec.precision, digits) + prefix_len; \
-    char width_padder = pad_with_zeroes ? '0' : ' '; \
-    if (!left_justify) {\
+    char width_padder = (spec.flags & IO_PRINTF_FLAG_ZERO) ? '0' : ' '; \
+    if (!(spec.flags & IO_PRINTF_FLAG_MINUS)) {\
         for (int i = non_space_characters; i < spec.width; ++i) { \
             ocdev.putc(width_padder); \
         } \
@@ -184,7 +175,7 @@ PRINTER_HEADER(SUFFIX, TYPE) { \
         ocdev.putc('0'); \
     } \
     ocdev.puts(buf_writer); \
-    if (left_justify) {\
+    if (spec.flags & IO_PRINTF_FLAG_MINUS) {\
         for (int i = non_space_characters; i < spec.width; ++i) { \
             ocdev.putc(' ' /*width_padder*/); \
         } \
@@ -239,16 +230,15 @@ GEN_SUBROUTINE(x, h);
 GEN_SUBROUTINE(X, H);
 
 PRINTER_HEADER(string, char *) {
-    INIT_PRINTF_SUBROUTINE;
     uint32_t len = strlen(d);
-    uint32_t chars = precision_specified ? umin(len, spec.precision) : len;
-    if (!left_justify) {
+    uint32_t chars = (spec.flags & IO_PRINTF_FLAG_PRECISION_SPECIFIED) ? umin(len, spec.precision) : len;
+    if (!(spec.flags & IO_PRINTF_FLAG_MINUS)) {
         for (uint32_t i = chars; i < spec.width; ++i) {
             ocdev.putc(' ');
         }
     }
     ocdev.putsl(d, chars);
-    if (left_justify) {
+    if (spec.flags & IO_PRINTF_FLAG_MINUS) {
         for (uint32_t i = chars; i < spec.width; ++i) {
             ocdev.putc(' ');
         }
