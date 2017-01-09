@@ -10,6 +10,8 @@ LIBS					:= gcc
 DIST					:= beaver
 GZIP					:= gzip
 
+all: $(IMAGE)
+
 TARGETS					:= loader kernel
 
 OBJS_loader				:= $(shell find $(SRC)/loader -type f | egrep '\.[sc]$$')
@@ -20,6 +22,7 @@ $(OBJS_loader):	CFLAGS	+= -I$(SRC)/loader/include/
 $(OBJS_loader):	AS		:= i686-elf-as
 loader.bin:		LD		:= i686-elf-gcc
 loader.bin:		LDFLAGS	+= -T $(SRC)/loader/linker.ld
+loader.bin: $(SRC)/loader/linker.ld
 
 OBJS_kernel				:= $(shell find $(SRC) -not -path '$(SRC)/loader/*' -type f | egrep '\.[sc]$$')
 OBJS_kernel				:= $(OBJS_kernel:$(SRC)/%=$(OBJ)/%.o)
@@ -29,6 +32,7 @@ $(OBJS_kernel):	CFLAGS	+= -I$(SRC)/include/
 $(OBJS_kernel):	AS		:= x86_64-elf-as
 kernel.bin:		LD		:= x86_64-elf-gcc
 kernel.bin:		LDFLAGS	+= -T $(SRC)/linker.ld
+kernel.bin: $(SRC)/linker.ld
 
 FLAGS					:= DEBUG
 # Flags can be changed from command line, eg:
@@ -64,8 +68,6 @@ LDFLAGS					+= $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_LDFLAGS))
 .SECONDEXPANSION:
 
 PERCENT					:= %
-
-all: $(IMAGE)
 
 $(IMAGE): $(BINARIES) $(SRC)/grub.cfg | $(ISO) $(ISO)/boot $(ISO)/boot/grub
 	@echo 'GRUB    $(IMAGE)'
