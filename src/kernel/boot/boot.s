@@ -2,8 +2,8 @@
 .globl      start
 .type       start,                          @function
 
-start:
-            cli
-            movq    $0x2f592f412f4b2f4f,    %rax
+start:      cli
+            mov     $0x2f592f412f4b2f4f,    %rax
+            mov     %rax,                   0xb8000
 .Lhlt:      hlt
             jmp     .Lhlt

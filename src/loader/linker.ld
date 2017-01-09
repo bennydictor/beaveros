@@ -1,32 +1,38 @@
+OUTPUT_FORMAT("elf32-i386", "elf32-i386", "elf32-i386")
+OUTPUT_ARCH(i386)
 ENTRY(start)
 
 SECTIONS {
     . = 1M;
 
-    .boot :
-    {
-        /* ensure that the multiboot header is at the beginning */
-        *(.multiboot_header)
+	.text : {
+        *(.multiboot2_header)
+        *(.entry_text)
+        *(.text*)
     }
 
-    .text BLOCK(4K) : ALIGN(4K)
-    {
-        *(.text)
+	.rodata : {
+        *(.rodata*)
     }
 
-    .rodata BLOCK(4K) : ALIGN(4K)
-    {
-        *(.rodata)
+	.data : {
+        *(.data*)
     }
 
-    .data BLOCK(4K) : ALIGN(4K)
-    {
-        *(.data)
-    }
-
-    .bss BLOCK(16K) : ALIGN(4K)
-    {
+	.bss : {
         *(COMMON)
-        *(.bss)
+        *(.bss*)
+        *(.loader_stack)
     }
+
+    .eh_frame : {
+        *(.eh_frame)
+    }
+
+	.comment : {
+        *(.note*) *(.comment*)
+    }
+
+    . = ALIGN(0x1000);
+	loader_end = .;
 }

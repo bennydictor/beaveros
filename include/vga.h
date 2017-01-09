@@ -1,8 +1,8 @@
-#ifndef BEAVER_VGA_VGA_H
-#define BEAVER_VGA_VGA_H
+#ifndef BEAVER_VGA_H
+#define BEAVER_VGA_H
 
 #include <stdint.h>
-#include <io/output_character_device.h>
+#include <io/ocdev.h>
 
 typedef enum {
     COLOR_BLACK,
@@ -25,21 +25,21 @@ typedef enum {
 
 void vga_init(void);
 
-void vga_putc(char c);
+void vga_putc(char);
 void vga_clear(void);
-void vga_puts(const char *str);
-void vga_putsl(const char *str, uint32_t length);
+void vga_puts(const char *);
+void vga_putsl(const char *, uint32_t);
 
-void vga_move_cursor(uint16_t x, uint16_t y);
+void vga_move_cursor(uint16_t, uint16_t);
 uint16_t vga_get_x(void);
 uint16_t vga_get_y(void);
 uint16_t vga_get_width(void);
 uint16_t vga_get_height(void);
 
-void vga_set_color(uint8_t color);
-void vga_set_foreground(vga_color_t color);
-void vga_set_background(vga_color_t color);
+void vga_set_color(uint8_t);
+void vga_set_foreground(vga_color_t);
+void vga_set_background(vga_color_t);
 
 ocdev_t vga_get_ocdev(void);
 
-#endif // BEAVER_VGA_VGA_H
+#endif // BEAVER_VGA_H

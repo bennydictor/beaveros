@@ -1,20 +1,20 @@
-.section    .text
+.section    .entry_text
 .globl      start
-.type       start,                      @function
+.type       start,          @function
 
 start:
-            cli
-            pushl %ebp
-            movl %esp, %ebp 
-            pushl %ebx
-            pushl %eax
-            call kernel_main
-            addl $8, %esp
-            popl %ebp
-.Lhlt:      hlt
-            jmp     .Lhlt
+    cli
+    mov     $stack_top,     %esp
+    mov     %esp,           %ebp
+    push    %ebx
+    push    %eax
+    call    loader_main
+.Lhlt:
+    hlt
+    jmp     .Lhlt
 
-.section    .bss
+.section    .loader_stack
+    .align 8
 stack_bottom:
-            .space 16 * 1024
+    .space  4 * 1024
 stack_top:

@@ -1,9 +1,10 @@
 ENTRY(start)
 
 SECTIONS {
-    . = 1M;
+    /* . = 0xffffffff80000000; /* -2G */
+    . = 0xfff00000;
 
-    .text BLOCK(4K) : ALIGN(4K)
+    .text : 
     {
         *(.text)
     }

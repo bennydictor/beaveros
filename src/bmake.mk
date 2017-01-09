@@ -7,7 +7,7 @@ AS          			:= $(ARCH)-as
 ASFLAGS     			:=
 
 LD						:= $(CC)
-LDFLAGS     			:= -T $(SRC)/linker.ld -ffreestanding -nostdlib
+LDFLAGS     			:= -T $(SRC)/linker.ld -ffreestanding -nostdlib -z max-page-size=0x1000
 LIBS        			:= gcc
 
 # Do not change below this line, unless you know what are you doing
@@ -74,13 +74,13 @@ all: $(TARGET)
 PERCENT := %
 
 $(TARGET): $(OBJS) $(SRC)/linker.ld | $(BMAKE)
-	$(LDCOMPILE) $^ -o $@
+	$(LDCOMPILE) $(OBJS) -o $@
 	@echo $(LDCOMPILE) >$(BMAKE)/$@.b
 
 $(OBJ)/%.c.o: $(SRC)/%.c | $$(@D) $$(patsubst $(OBJ)$$(PERCENT),$(BMAKE)$$(PERCENT),$$(@D))
 	$(CCCOMPILE) -c $< -o $@
 	@echo $(CCCOMPILE) >$(BMAKE)/$*.c.b
-	@$(CCCOMPILE) -M $< | sed -E 's:^$*.o:$(OBJ)/$*.c.o:' >$(BMAKE)/$*.c.d
+	@$(CCCOMPILE) -M $< | sed -E 's:^$(notdir $*).o:$(OBJ)/$*.c.o:' >$(BMAKE)/$*.c.d
 
 $(OBJ)/%.s.o: $(SRC)/%.s | $$(@D) $$(patsubst $(OBJ)$$(PERCENT),$(BMAKE)$$(PERCENT),$$(@D))
 	$(ASCOMPILE) $< -o $@

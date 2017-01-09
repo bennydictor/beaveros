@@ -3,7 +3,7 @@
 ## Official contributors
 If you want to write something, branch off the `dev` branch.
 Please choose a meaningful name (eg. `bootloader` is good and `asdf`
-is a bad). Also, if you are working on a github issue, please append
+is bad). Also, if you are working on a github issue, please append
 issue number to the end with a dash (eg. `ipc-sharedmem-#42`).
 You can do it like so:
 ```

@@ -1,7 +1,7 @@
 obj
 iso
 .bmake
-beaveros.bin
+*.bin
 beaveros.iso
 .ycm*
 *.log
