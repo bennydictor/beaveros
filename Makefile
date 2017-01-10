@@ -107,7 +107,7 @@ run: all
 	@qemu-system-x86_64 $(IMAGE)
 
 run-debug: all
-	@qemu-system-x86_64
+	@qemu-system-x86_64 -s -S $(IMAGE)
 
 -include $(DEPS)
 

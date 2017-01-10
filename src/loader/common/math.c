@@ -15,3 +15,11 @@ inline unsigned int umin(unsigned int a, unsigned int b) {
 inline unsigned int umax(unsigned int a, unsigned int b) {
     return a < b ? b : a;
 }
+
+inline uint64_t min_ull(uint64_t a, uint64_t b) {
+    return a < b ? a : b;
+}
+
+inline uint64_t max_ull(uint64_t a, uint64_t b) {
+    return a < b ? b : a;
+}
