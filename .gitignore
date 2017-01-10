@@ -5,3 +5,6 @@ iso
 beaveros.iso
 .ycm*
 *.log
+*~
+.DS_Store
+*.swp
