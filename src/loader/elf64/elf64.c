@@ -32,23 +32,6 @@ bool load_elf64(void *start, uint64_t *entry) {
         return false;
     }
     *entry = ehdr->e_entry;
-    /*
-    elf64_shdr_t *shdr = start + ehdr->e_shoff;
-    for (uint16_t si = 0; si < ehdr->e_shnum; ++si) {
-        if (shdr[si].sh_type == SHT_PROGBITS ||
-            shdr[si].sh_type == SHT_NOBITS) {
-            for (uint64_t i = 0; i < shdr[si].sh_size; i += PAGE_SIZE) {
-                void *page = new_phys_zero_page();
-                if (shdr[si].sh_type == SHT_PROGBITS) {
-                    memcpy(page, start + shdr[si].sh_offset, min(shdr[si].sh_size - i, PAGE_SIZE));
-                }
-                map_page(shdr[si].sh_addr + i,
-                            (uint64_t) (uint32_t) page + i,
-                            PAGE_RW_BIT | PAGE_G_BIT);
-            }
-        }
-    }
-    */
 
     elf64_phdr_t *phdr = start + ehdr->e_phoff;
     for (uint16_t pi = 0; pi < ehdr->e_phnum; ++pi) {
@@ -56,7 +39,9 @@ bool load_elf64(void *start, uint64_t *entry) {
             for (uint64_t i = 0; i < phdr[pi].p_memsz; i += PAGE_SIZE) {
                 void *page = new_phys_zero_page();
                 if (i < phdr[pi].p_filesz) {
-                    memcpy(page, start + phdr[pi].p_offset, min_ull(phdr[pi].p_filesz - i, PAGE_SIZE));
+                    memcpy(page,
+                            start + phdr[pi].p_offset + i,
+                            min_ull(phdr[pi].p_filesz - i, PAGE_SIZE));
                 }
                 map_page(phdr[pi].p_vaddr + i, (uint64_t) (uint32_t) page,
                         PAGE_RW_BIT | PAGE_G_BIT);
