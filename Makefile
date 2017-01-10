@@ -28,7 +28,7 @@ OBJS_kernel				:= $(shell find $(SRC) -not -path '$(SRC)/loader/*' -type f | egr
 OBJS_kernel				:= $(OBJS_kernel:$(SRC)/%=$(OBJ)/%.o)
 
 $(OBJS_kernel):	CC		:= x86_64-elf-gcc
-$(OBJS_kernel):	CFLAGS	+= -I$(SRC)/include/
+$(OBJS_kernel):	CFLAGS	+= -I$(SRC)/include/ -mcmodel=large -mno-red-zone -mno-mmx -mno-sse -mno-sse2
 $(OBJS_kernel):	AS		:= x86_64-elf-as
 kernel.bin:		LD		:= x86_64-elf-gcc
 kernel.bin:		LDFLAGS	+= -T $(SRC)/linker.ld
