@@ -14,6 +14,13 @@ header_start:
     .long   CHECKSUM
 
     .align  8
+
+# Module alignment tag
+    .short  6
+    .short  0
+    .long   8
+
+# End tag
     .short  0
     .short  0
     .long   8

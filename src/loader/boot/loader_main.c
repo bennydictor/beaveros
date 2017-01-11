@@ -42,6 +42,11 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     if (!kernel_start) {
         PANIC("Kernel not found");
     }
+
+    if ((uint32_t) kernel_start & 0xfff) {
+        PANIC("Kernel not aligned");
+    }
+
     extend_used_memory(kernel_end);
 
     setup_identity_paging((void *) 0x800000); // 8M
@@ -53,7 +58,7 @@ void loader_main(uint32_t eax, uint32_t ebx) {
 
     if ((uint32_t) get_used_memory() > 0x800000) {
         PANIC("Used memory is greater than 8M");
-    }
+    } 
 
     enable_long_mode(kernel_entry);
 }
