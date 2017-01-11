@@ -3,10 +3,7 @@
 .type       start,      @function
 
 start:
-    cli
-    mov     $3,         %rdi
-    call    get_cr
-    mov     %rax,       0xb8000
+    call    kernel_main
 .Lhlt:
     hlt
     jmp     .Lhlt
