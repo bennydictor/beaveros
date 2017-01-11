@@ -51,16 +51,16 @@ void loader_main(uint32_t eax, uint32_t ebx) {
 
     extend_used_memory(kernel_end);
 
-    setup_identity_paging((void *) 0x800000); /* 8M */
-
     uint64_t kernel_entry;
     if (!load_elf64(kernel_start, &kernel_entry)) {
         PANIC("Can't load kernel");
     }
 
+    setup_identity_paging();
+
     if ((uint32_t) get_used_memory() > 0x800000) {
         PANIC("Used memory is greater than 8M");
     }
 
-    enable_long_mode(kernel_entry);
+    enable_long_mode(kernel_entry, ebx);
 }

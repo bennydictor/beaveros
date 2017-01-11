@@ -73,8 +73,8 @@ void map_page(uint64_t virt, uint64_t phys, uint64_t flags) {
     *pte |= flags & PT_FLAGS_MASK;
 }
 
-void setup_identity_paging(void *addr) {
-    for (uint64_t i = 0; i < (uint64_t) (uint32_t) addr; i += PAGE_SIZE) {
+void setup_identity_paging() {
+    for (uint64_t i = 0; i < (uint64_t) (uint32_t) used_memory; i += PAGE_SIZE) {
         map_page(i, i, PAGE_RW_BIT | PAGE_G_BIT);
     }
 }
