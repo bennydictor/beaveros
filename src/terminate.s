@@ -4,6 +4,6 @@
 
 terminate:
     cli
-.Lhlt:
+.hlt:
     hlt
-    jmp .Lhlt
+    jmp     .hlt

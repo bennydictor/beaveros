@@ -1,11 +1,12 @@
 .section    .text
+
+#define CR4_PAE_BIT     (1 << 5)
+#define CR0_PG_BIT      (1 << 31)
+#define EFER_REGNUM     0xC0000080
+#define EFER_LME_BIT    (1 << 8)
+
 .globl      enable_long_mode
 .type       enable_long_mode,      @function
-
-.set        CR4_PAE_BIT,    1 << 5
-.set        CR0_PG_BIT,     1 << 31
-.set        EFER_REGNUM,    0xC0000080
-.set        EFER_LME_BIT,   1 << 8
 
 enable_long_mode:
     push    %ebp
@@ -14,7 +15,7 @@ enable_long_mode:
     # load pml4 address
     mov     pml4,           %eax
     mov     %eax,           %cr3
-    
+
     # enable PAE
     mov     %cr4,           %eax
     or      $CR4_PAE_BIT,   %eax
@@ -25,7 +26,7 @@ enable_long_mode:
     rdmsr
     or      $EFER_LME_BIT,  %eax
     wrmsr
-    
+
     # enable paging
     mov     %cr0,           %eax
     or      $CR0_PG_BIT,    %eax
@@ -39,17 +40,30 @@ enable_long_mode:
     mov     %ax,            %fs
     mov     %ax,            %gs
 
-    ljmp    $0x08,          $.Ljmp64
+    ljmp    $0x08,          $.jmp64
 
 .code64
-.Ljmp64:
+.jmp64:
     jmp     *8(%rbp)
 
 .section    .rodata
+
 gdt64:
-    .word   0x0,    0x0,    0x0,    0x0     # null segment descriptor
-    .word   0xffff, 0x0000, 0x9a00, 0x00af  # code segment descriptor
-    .word   0xffff, 0x0000, 0x9200, 0x00cf  # data segment descriptor
+    # null segment descriptor
+    .quad   0x0
+
+    # code segment descriptor
+    .word   0xffff
+    .word   0x0000
+    .word   0x9a00
+    .word   0x00af
+
+    # data segment descriptor
+    .word   0xffff
+    .word   0x0000
+    .word   0x9200
+    .word   0x00cf
+
 gdt64r:
     .short  . - gdt64 - 1
     .long   gdt64

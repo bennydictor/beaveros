@@ -1,4 +1,4 @@
-#include <vga.h>
+#include <io/vga.h>
 #include <io/ocdev.h>
 #include <io/printf.h>
 #include <string.h>
@@ -12,7 +12,7 @@
 void loader_main(uint32_t eax, uint32_t ebx) {
     vga_init();
     vga_set_foreground(COLOR_LIGHT_GREEN);
-    set_std_ocdev(vga_get_ocdev());
+    std_ocdev = vga_ocdev;
 
     if (eax != 0x36d76289) {
         PANIC("Not loaded by multiboot2 loader");
@@ -28,10 +28,12 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     extend_used_memory((void *) ebx + multiboot2_header->total_size);
 
     void *kernel_start = 0, *kernel_end = 0;
-    multiboot2_tag_header_t *tag = (void *) multiboot2_header + sizeof(multiboot2_fixed_part_t);
+    multiboot2_tag_header_t *tag =
+            (void *) multiboot2_header + sizeof(multiboot2_fixed_part_t);
     while (tag->type != MULTIBOOT2_END_TAG) {
         if (tag->type == MULTIBOOT2_MODULE_TAG) {
-            multiboot2_module_tag_t *module_tag = (multiboot2_module_tag_t *) tag;
+            multiboot2_module_tag_t *module_tag =
+                    (multiboot2_module_tag_t *) tag;
             if (!strcmp("BEAVEROS", (char *) module_tag->string)) {
                 kernel_start = (void *) module_tag->mod_start;
                 kernel_end = (void *) module_tag->mod_end;
@@ -49,7 +51,7 @@ void loader_main(uint32_t eax, uint32_t ebx) {
 
     extend_used_memory(kernel_end);
 
-    setup_identity_paging((void *) 0x800000); // 8M
+    setup_identity_paging((void *) 0x800000); /* 8M */
 
     uint64_t kernel_entry;
     if (!load_elf64(kernel_start, &kernel_entry)) {
@@ -58,7 +60,7 @@ void loader_main(uint32_t eax, uint32_t ebx) {
 
     if ((uint32_t) get_used_memory() > 0x800000) {
         PANIC("Used memory is greater than 8M");
-    } 
+    }
 
     enable_long_mode(kernel_entry);
 }

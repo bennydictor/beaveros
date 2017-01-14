@@ -4,7 +4,8 @@
 #include <assert.h>
 
 #define BITS(X, L, H) (((X) >> (L)) & ((1 << ((H) - (L))) - 1))
-#define ALIGN_TO_NEXT_PAGE(X) ((void *) (((((uint32_t) (X)) - 1U) & ~(PAGE_SIZE - 1)) + PAGE_SIZE))
+#define ALIGN_TO_NEXT_PAGE(X) ((void *) (((((uint32_t) (X)) - 1U) & \
+        ~(PAGE_SIZE - 1)) + PAGE_SIZE))
 
 extern void *loader_end;
 static void *used_memory = &loader_end;
@@ -34,9 +35,12 @@ void *new_phys_zero_page(void) {
 }
 
 void map_page(uint64_t virt, uint64_t phys, uint64_t flags) {
-    ASSERT(BITS(virt, 47, 64) == 0 || BITS(virt, 47, 64) == 0x1ffff); // check sign extend
-    ASSERT((virt & (PAGE_SIZE - 1)) == 0); // check page is aligned
-    ASSERT((phys & ~PAGE_ADDR_BITS) == 0); // check page is alighed and address is 52-bit
+    /* check sign extend */
+    ASSERT(BITS(virt, 47, 64) == 0 || BITS(virt, 47, 64) == 0x1ffff);
+    /* check page is aligned */
+    ASSERT((virt & (PAGE_SIZE - 1)) == 0);
+    /* check page is alighed and address is 52-bit */
+    ASSERT((phys & ~PAGE_ADDR_BITS) == 0);
 
     if (!pml4) {
         pml4 = new_phys_zero_page();

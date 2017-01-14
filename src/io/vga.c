@@ -1,4 +1,4 @@
-#include <vga.h>
+#include <io/vga.h>
 #include <io/portio.h>
 
 static uint16_t *vga_buffer;
@@ -7,7 +7,7 @@ static uint16_t vga_height;
 static uint16_t vga_x;
 static uint16_t vga_y;
 static uint8_t vga_color;
-static const ocdev_t vga_ocdev = {vga_putc, vga_puts, vga_putsl};
+const ocdev_t vga_ocdev = { vga_putc, vga_puts, vga_putns };
 
 static void vga_update_cursor(void) {
     uint16_t cursor = vga_x + vga_width * vga_y;
@@ -23,9 +23,11 @@ static void vga_scroll(void) {
     blank |= ' ';
     if (vga_y >= vga_height) {
         uint16_t y_to = 0;
-        for (uint16_t y_from = vga_y - vga_height + 1; y_from < vga_height; ++y_to, ++y_from) {
+        for (uint16_t y_from = vga_y - vga_height + 1; y_from < vga_height;
+                ++y_to, ++y_from) {
             for (uint16_t x = 0; x < vga_width; ++x) {
-                vga_buffer[vga_width * y_to + x] = vga_buffer[vga_width * y_from + x];
+                vga_buffer[vga_width * y_to + x] =
+                        vga_buffer[vga_width * y_from + x];
             }
         }
         vga_x = 0;
@@ -64,7 +66,8 @@ void vga_putc(char c) {
         vga_x = 0;
         ++vga_y;
     } else if (c >= ' ') {
-        vga_buffer[vga_x + vga_width * vga_y] = (uint16_t) c | ((uint16_t) vga_color << 8);
+        vga_buffer[vga_x + vga_width * vga_y] =
+                (uint16_t) c | ((uint16_t) vga_color << 8);
         ++vga_x;
     }
 
@@ -95,7 +98,7 @@ void vga_puts(const char *str) {
     }
 }
 
-void vga_putsl(const char *str, uint32_t length) {
+void vga_putns(const char *str, size_t length) {
     while (length--) {
         vga_putc(*str++);
     }

@@ -5,4 +5,4 @@
 
 uint64_t get_cr(uint64_t);
 
-#endif // BEAVER_REGISTERS_H
+#endif /* BEAVER_REGISTERS_H */

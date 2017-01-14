@@ -1,19 +1,19 @@
-ENTRY(start)
+OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
+ENTRY(kernel_main)
 
 SECTIONS {
-     . = 0xffffffff80000000; /* -2G */
+    . = 0xffffffff80000000; /* -2G */
 
     .text : ALIGN(0x1000) {
         *(.text)
     }
 
-    .rodata : ALIGN(0x1000) {
-        *(.rodata)
-        *(.rodata.*)
-    }
-
     .data : ALIGN(0x1000) {
         *(.data)
+    }
+
+    .rodata : ALIGN(0x1000) {
+        *(.rodata*)
     }
 
 	.bss : ALIGN(0x1000) {

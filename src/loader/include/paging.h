@@ -21,7 +21,7 @@
 #define PD_FLAGS_MASK   0xfff0000000000e3fULL
 #define PT_FLAGS_MASK   0xfff0000000000fffULL
 
-#define PAGE_SIZE_BITS  12U // 4K
+#define PAGE_SIZE_BITS  12U     /* 4K */
 #define PAGE_SIZE       (1U << PAGE_SIZE_BITS)
 #define PAGE_TABLE_SIZE 512U
 
@@ -36,4 +36,4 @@ void *new_phys_zero_page(void);
 void map_page(uint64_t, uint64_t, uint64_t);
 void setup_identity_paging(void *);
 
-#endif // BEAVER_PAGING_H
+#endif /* BEAVER_PAGING_H */

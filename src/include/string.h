@@ -1,7 +1,6 @@
 #ifndef BEAVER_STRING_H
 #define BEAVER_STRING_H
 
-#include <stdint.h>
 #include <stddef.h>
 
 int strcmp(const char *, const char *);
@@ -11,4 +10,4 @@ void *memcpy(void *, const void *, size_t);
 void *memmove(void *, const void *, size_t);
 void *memset(void *, int, size_t);
 
-#endif // BEAVER_STRING_H
+#endif /* BEAVER_STRING_H */

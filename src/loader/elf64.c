@@ -7,14 +7,14 @@
 bool load_elf64(void *start, uint64_t *entry) {
     elf64_ehdr_t *ehdr = start;
     if (ehdr->e_ident[EI_MAG0] != 0x7f ||
-        ehdr->e_ident[EI_MAG1] != 'E' ||
-        ehdr->e_ident[EI_MAG2] != 'L' ||
-        ehdr->e_ident[EI_MAG3] != 'F') {
+            ehdr->e_ident[EI_MAG1] != 'E' ||
+            ehdr->e_ident[EI_MAG2] != 'L' ||
+            ehdr->e_ident[EI_MAG3] != 'F') {
         printf("ELF identification incorrect\n");
         return false;
     }
     if (ehdr->e_ident[EI_CLASS] != ELFCLASS64 ||
-        ehdr->e_ident[EI_DATA] != ELFDATA2LSB) {
+            ehdr->e_ident[EI_DATA] != ELFDATA2LSB) {
         printf("Expected 64 bit little endian ELF\n");
         return false;
     }
@@ -23,7 +23,7 @@ bool load_elf64(void *start, uint64_t *entry) {
         return false;
     }
     if (ehdr->e_ident[EI_OSABI] != ELFOSABI_SYSV ||
-        ehdr->e_ident[EI_ABIVERSION] != 0) {
+            ehdr->e_ident[EI_ABIVERSION] != 0) {
         printf("Expected System V ABI version 0\n");
         return false;
     }
@@ -37,19 +37,11 @@ bool load_elf64(void *start, uint64_t *entry) {
     for (uint16_t pi = 0; pi < ehdr->e_phnum; ++pi) {
         if (phdr[pi].p_type == PT_LOAD) {
             for (uint64_t i = 0; i < phdr[pi].p_memsz; i += PAGE_SIZE) {
-            /*    void *page = new_phys_zero_page();
-                if (i < phdr[pi].p_filesz) {
-                    memcpy(page,
-                            start + phdr[pi].p_offset + i,
-                            min_ull(phdr[pi].p_filesz - i, PAGE_SIZE));
-                }
-                */
                 void *page = start + phdr[pi].p_offset + i;
                 if (i < phdr[pi].p_filesz) {
                     if (phdr[pi].p_filesz < i + PAGE_SIZE) {
                         memset(page + phdr[pi].p_filesz - i,
-                                0,
-                                i + PAGE_SIZE - phdr[pi].p_filesz);
+                                0, i + PAGE_SIZE - phdr[pi].p_filesz);
                     }
                 } else {
                     page = new_phys_zero_page();

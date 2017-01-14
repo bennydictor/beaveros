@@ -1,15 +1,14 @@
 #ifndef BEAVER_IO_OCDEV_H
 #define BEAVER_IO_OCDEV_H
 
-#include <stdint.h>
+#include <stddef.h>
 
 typedef struct {
-    void (*putc)(char);
-    void (*puts)(const char *);
-    void (*putsl)(const char *, uint32_t);
+    void (*putc) (char);
+    void (*puts) (const char *);
+    void (*putns) (const char *, size_t);
 } ocdev_t;
 
-void set_std_ocdev(const ocdev_t);
-ocdev_t get_std_ocdev(void);
+extern ocdev_t std_ocdev;
 
-#endif // BEAVER_IO_OCDEV_H
+#endif /* BEAVER_IO_OCDEV_H */

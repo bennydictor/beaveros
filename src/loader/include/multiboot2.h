@@ -3,6 +3,18 @@
 
 #include <stdint.h>
 
+#define MULTIBOOT2_END_TAG              0
+#define MULTIBOOT2_CMD_TAG              1
+#define MULTIBOOT2_BOOT_LOADER_NAME_TAG 2
+#define MULTIBOOT2_MODULE_TAG           3
+#define MULTIBOOT2_BASIC_MEMORY_TAG     4
+#define MULTIBOOT2_BIOS_BOOT_DEVICE_TAG 5
+#define MULTIBOOT2_MEMORY_MAP_TAG       6
+#define MULTIBOOT2_VBE_INFO_TAG         7
+#define MULTIBOOT2_FRAMEBUFFER_INFO_TAG 8
+#define MULTIBOOT2_ELF_SYMBOLS_TAG      9
+#define MULTIBOOT2_APM_TABLE_TAG        10
+
 typedef struct {
     uint32_t total_size;
     uint32_t reserved;
@@ -133,16 +145,4 @@ typedef struct {
 
 multiboot2_tag_header_t *multiboot2_next_tag(multiboot2_tag_header_t *);
 
-#define MULTIBOOT2_END_TAG (0)
-#define MULTIBOOT2_CMD_TAG (1)
-#define MULTIBOOT2_BOOT_LOADER_NAME_TAG (2)
-#define MULTIBOOT2_MODULE_TAG (3)
-#define MULTIBOOT2_BASIC_MEMORY_TAG (4)
-#define MULTIBOOT2_BIOS_BOOT_DEVICE_TAG (5)
-#define MULTIBOOT2_MEMORY_MAP_TAG (6)
-#define MULTIBOOT2_VBE_INFO_TAG (7)
-#define MULTIBOOT2_FRAMEBUFFER_INFO_TAG (8)
-#define MULTIBOOT2_ELF_SYMBOLS_TAG (9)
-#define MULTIBOOT2_APM_TABLE_TAG (10)
-
-#endif // BEAVER_MULTIBOOT2_H
+#endif /* BEAVER_MULTIBOOT2_H */

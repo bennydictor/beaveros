@@ -1,8 +1,10 @@
 .section    .text
+
+#define FLAGS_ID_BIT    (1 << 21)
+#define CPUID_LM_BIT    (1 << 29)
+
 .globl      check_cpuid
 .type       check_cpuid,        @function
-
-.set        FLAGS_ID_BIT,       1 << 21
 
 check_cpuid:
     pushfl
@@ -25,25 +27,22 @@ check_cpuid:
     xor     $1,                 %eax
     ret
 
-.section    .text
 .globl      check_long_mode
 .type       check_long_mode,    @function
-
-.set        CPUID_LM_BIT,       1 << 29
 
 check_long_mode:
     mov     $0x80000000,        %eax
     cpuid
     cmp     $0x80000001,        %eax
-    jb      .LnoLongMode
+    jb      .no_long_mode
 
     mov     $0x80000001,        %eax
     cpuid
     test    $CPUID_LM_BIT,      %edx
-    jz      .LnoLongMode
+    jz      .no_long_mode
 
     mov     $1,                 %eax
     ret
-.LnoLongMode:
+.no_long_mode:
     movl    $0,                 %eax
     ret

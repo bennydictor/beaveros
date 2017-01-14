@@ -6,4 +6,4 @@
 bool check_cpuid(void);
 bool check_long_mode(void);
 
-#endif // BEAVER_CPUID_H
+#endif /* BEAVER_CPUID_H */
