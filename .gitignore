@@ -3,8 +3,15 @@ iso
 .bmake
 *.bin
 beaveros.iso
+# init script for gdb
+.gdbinit
+# YouCompleteMe
 .ycm*
+# Logs, I guess
 *.log
+# Emacs swap and indent backup
 *~
+# Mac OS' Finder magic stuff
 .DS_Store
+# Vim swap
 *.swp
