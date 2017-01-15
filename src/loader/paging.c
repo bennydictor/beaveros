@@ -74,7 +74,8 @@ void map_page(uint64_t virt, uint64_t phys, uint64_t flags) {
 }
 
 void setup_identity_paging() {
-    for (uint64_t i = 0; i < (uint64_t) (uint32_t) used_memory; i += PAGE_SIZE) {
+    map_page(0, 0, PAGE_RW_BIT);
+    for (uint64_t i = PAGE_SIZE; i < (uint64_t) (uint32_t) used_memory; i += PAGE_SIZE) {
         map_page(i, i, PAGE_RW_BIT | PAGE_G_BIT);
     }
 }
