@@ -186,12 +186,12 @@ endif
 dist: clean
 ifdef VERBOSE
 	tar -cvf $(DIST).tar --exclude $(DIST).tar --exclude-vcs --exclude-vcs-ignores .
-	$(BZIP2) $(DIST).tar
+	bzip2 $(DIST).tar
 else
 	@echo 'TAR     $(DIST)'
 	@tar -cf $(DIST).tar --exclude $(DIST).tar --exclude-vcs --exclude-vcs-ignores .
 	@echo 'BZIP2   $(DIST).tar'
-	@$(BZIP2) $(DIST).tar
+	@bzip2 $(DIST).tar
 endif
 
 run: all

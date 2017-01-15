@@ -3,6 +3,7 @@ iso
 .bmake
 *.bin
 beaveros.iso
+beaveros.tar.bz2
 # init script for gdb
 .gdbinit
 # YouCompleteMe

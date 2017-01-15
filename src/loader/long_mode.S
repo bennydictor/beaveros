@@ -46,6 +46,8 @@ enable_long_mode:
 .jmp64:
     xor     %rdi,           %rdi
     mov     16(%rbp),       %edi
+    xor     %rsi,           %rsi
+    mov     20(%rbp),       %esi
     jmp     *8(%rbp)
 
 .section    .rodata

@@ -4,7 +4,10 @@
 #include <string.h>
 #include <math.h>
 
-bool load_elf64(void *start, uint64_t *entry) {
+/* TODO: read physical window address from kernel elf */
+#define PHYS_WINDOW 0xfffffffffffff000ULL
+
+bool load_kernel(void *start, uint64_t *entry) {
     elf64_ehdr_t *ehdr = start;
     if (ehdr->e_ident[EI_MAG0] != 0x7f ||
             ehdr->e_ident[EI_MAG1] != 'E' ||
@@ -51,6 +54,11 @@ bool load_elf64(void *start, uint64_t *entry) {
             }
         }
     }
+
+    /* FIXME: this looks so buggy... */
+    map_page(PHYS_WINDOW, 0, PAGE_RW_BIT | PAGE_G_BIT);
+    map_page(PHYS_WINDOW - 0x1000,
+            (uint32_t) get_used_memory() - 0x1000, PAGE_RW_BIT | PAGE_G_BIT);
 
     return true;
 }

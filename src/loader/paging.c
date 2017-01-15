@@ -65,17 +65,16 @@ void map_page(uint64_t virt, uint64_t phys, uint64_t flags) {
     page_table_entry_t *pt = (void *) (uint32_t) (*pde & PAGE_ADDR_BITS);
     page_table_entry_t *pte = pt + BITS(virt, 12, 21);
 
-    *pte = phys;
     flags |= PAGE_P_BIT;
     *pml4e |= flags & PML4_FLAGS_MASK;
     *pdpe |= flags & PDP_FLAGS_MASK;
     *pde |= flags & PD_FLAGS_MASK;
-    *pte |= flags & PT_FLAGS_MASK;
+    *pte = flags & PT_FLAGS_MASK;
+    *pte |= phys;
 }
 
 void setup_identity_paging() {
-    map_page(0, 0, PAGE_RW_BIT);
-    for (uint64_t i = PAGE_SIZE; i < (uint64_t) (uint32_t) used_memory; i += PAGE_SIZE) {
+    for (uint64_t i = 0; i < (uint64_t) (uint32_t) used_memory; i += PAGE_SIZE) {
         map_page(i, i, PAGE_RW_BIT | PAGE_G_BIT);
     }
 }
