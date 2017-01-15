@@ -56,13 +56,5 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
 
     mapper_init(phys_mem, used_mem);
 
-    for (int i = 0; i < 10; ++i) {
-        uint32_t *addr = (void *) 0xdeadbeef000;
-        map_page(0, addr, MAP_ANON, PAGE_P_BIT | PAGE_RW_BIT | PAGE_F_BIT);
-        *addr = 0xb16b00b5;
-        ASSERT(*addr == 0xb16b00b5);
-        map_page(0, addr, NULL, 0);
-    }
-
     DEBUG_HLT;
 }

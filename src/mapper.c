@@ -19,7 +19,7 @@ void mapper_init(uint64_t phys_mem, uint64_t used_mem) {
     first_free_block = (void *) used_mem;
 
     page_header_t *window = LOOK(first_free_block);
-    window->size = phys_mem - used_mem;
+    window->size = (phys_mem - used_mem) / PAGE_SIZE;
     window->next = NULL;
 }
 
@@ -104,10 +104,6 @@ void map_page(pid_t pid, void *virt, void *phys, uint64_t flags) {
         goto invlpg;
     }
 
-    if (phys == MAP_ANON) {
-        phys = alloc_page();
-    }
-
     page_table_entry_t *window = LOOK(pml4);
     page_table_entry_t *pml4e = window + BITS(virt, 39, 48);
     *pml4e |= flags & PML4_FLAGS_MASK;
@@ -132,8 +128,22 @@ void map_page(pid_t pid, void *virt, void *phys, uint64_t flags) {
         *pde = (uint64_t) calloc_page();
     }
     page_table_entry_t *pt = (void *) (*pde & PAGE_ADDR_BITS);
+
     window = LOOK(pt);
     page_table_entry_t *pte = window + BITS(virt, 12, 21);
+
+    if (phys == MAP_ANON) {
+        if (*pte & PAGE_P_BIT) {
+            phys = (void *) (*pte & PAGE_ADDR_BITS);
+        } else {
+            phys = alloc_page();
+            LOOK(pt);
+        }
+    } else {
+        if ((phys != (void *) (*pte & PAGE_ADDR_BITS)) && (*pte & PAGE_F_BIT)) {
+            free_page((void *) (*pte & PAGE_ADDR_BITS));
+        }
+    }
     *pte = flags & PT_FLAGS_MASK;
     *pte |= (uint64_t) phys;
 
