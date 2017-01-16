@@ -8,10 +8,8 @@
 #include <math.h>
 #include <mapper.h>
 #include <debug.h>
-#include <assert.h>
+#include <interrupts.h>
 
-void install_interrupt(uint64_t, uint8_t);
-void test_isr();
 __attribute__ ((force_align_arg_pointer))
 __attribute__ ((noreturn))
 void kernel_main(void *multiboot, uint64_t used_mem) {
@@ -55,9 +53,11 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
         }
         tag = multiboot2_next_tag(tag);
     }
+
     mapper_init(phys_mem, used_mem);
-    init_interrupts();
-    install_interrupt((uint64_t) test_isr, 0x80);
-    asm ("int $0x80");
+    interrupts_init();
+
+    asm volatile ("int $0x80"); /* for testing */
+
     DEBUG_HLT;
 }
