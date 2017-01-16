@@ -57,7 +57,7 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
     mapper_init(phys_mem, used_mem);
     interrupts_init();
 
-    asm volatile ("int $0x80"); /* for testing */
+    *((int *) 0xdeadbeef) = 0x15135515; /* for testing, throws #PF */
 
     DEBUG_HLT;
 }
