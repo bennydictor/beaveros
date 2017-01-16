@@ -25,6 +25,7 @@
 
 #define PAGE_SIZE       0x1000
 
+/* TODO: maybe a better constant for MAP_ANON? */
 #define MAP_ANON        NULL
 
 #define PHYS_WINDOW ((void *) 0xfffffffffffff000ULL)
@@ -37,10 +38,8 @@
 })
 
 typedef uint64_t page_table_entry_t;
-typedef uint16_t pid_t;
 
 void mapper_init(uint64_t phys_mem, uint64_t used_mem);
-void map_page(pid_t pid, void *virt, void *phys, uint64_t flags);
-void activate_map(pid_t pid);
+void map_page(void *virt, void *phys, uint64_t flags);
 
 #endif /* BEAVER_MAPPER_H */

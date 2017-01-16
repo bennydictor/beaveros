@@ -5,7 +5,7 @@
 #include <io/printf.h>
 #include <terminate.h>
 
-#define PANIC(MSG, ...) _PANIC_HELPER(MSG, __FILE__, __LINE__, ##__VA_ARGS__) 
+#define PANIC(MSG, ...) _PANIC_HELPER(MSG, __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define _PANIC_HELPER(MSG, F, L, ...) ({ \
     vga_set_foreground(COLOR_LIGHT_RED); \

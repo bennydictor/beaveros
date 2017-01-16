@@ -55,9 +55,7 @@ static void free_page(page_header_t *page) {
     first_free_block = page;
 }
 
-static void unmap_page(pid_t pid, void *virt) {
-    (void) pid;
-
+static void unmap_page(void *virt) {
     page_table_entry_t *window = LOOK(pml4);
     page_table_entry_t *pml4e = window + BITS(virt, 39, 48);
 
@@ -90,8 +88,7 @@ static void unmap_page(pid_t pid, void *virt) {
     }
 }
 
-void map_page(pid_t pid, void *virt, void *phys, uint64_t flags) {
-    ASSERT(pid == 0);
+void map_page(void *virt, void *phys, uint64_t flags) {
     /* check sign extend */
     ASSERT(BITS(virt, 47, 64) == 0 || BITS(virt, 47, 64) == 0x1ffff);
     /* check page is aligned */
@@ -100,7 +97,7 @@ void map_page(pid_t pid, void *virt, void *phys, uint64_t flags) {
     ASSERT(((uint64_t) phys & ~PAGE_ADDR_BITS) == 0);
 
     if (!(flags & PAGE_P_BIT)) {
-        unmap_page(pid, virt);
+        unmap_page(virt);
         goto invlpg;
     }
 
@@ -149,8 +146,4 @@ void map_page(pid_t pid, void *virt, void *phys, uint64_t flags) {
 
 invlpg:
     asm volatile ("invlpg (%0)"::"r" (virt));
-}
-
-void activate_map(pid_t pid) {
-    ASSERT(pid == 0);
 }
