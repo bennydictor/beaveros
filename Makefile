@@ -4,6 +4,7 @@ OBJ                     := obj
 ISO                     := iso
 
 CFLAGS                  := -std=gnu99 -Wall -Wextra -Wshadow -ffreestanding
+ASFLAGS                 := -DASSEMBLER
 LDFLAGS                 := -ffreestanding -nostdlib -z max-page-size=0x1000
 LIBS                    := gcc
 
@@ -16,10 +17,8 @@ TARGETS                 := loader kernel
 SRCS_loader             := $(shell find -L $(SRC)/loader -type f | egrep '\.[csS]$$')
 CC_loader               := i686-elf-gcc
 CFLAGS_loader           = $(CFLAGS) -I$(SRC)/loader/include/
-AS_loader               := i686-elf-as
+AS_loader               := $(CC_loader)
 ASFLAGS_loader          = $(ASFLAGS)
-AS_CPP_loader           := $(CC_loader) -E
-AS_CPPFLAGS_loader      = $(AS_CPPFLAGS)
 LD_loader               := $(CC_loader)
 LDFLAGS_loader          = $(LDFLAGS) -T $(SRC)/loader/linker.ld
 loader.bin: $(SRC)/loader/linker.ld
@@ -28,10 +27,8 @@ SRCS_kernel             := $(shell find -L $(SRC) -not -path '$(SRC)/loader/*' -
 
 CC_kernel               := x86_64-elf-gcc
 CFLAGS_kernel           = $(CFLAGS) -I$(SRC)/include/ -mcmodel=large -mno-red-zone -mno-mmx -mno-sse -mno-sse2
-AS_kernel               := x86_64-elf-as
+AS_kernel               := $(CC_kernel)
 ASFLAGS_kernel          = $(ASFLAGS)
-AS_CPP_kernel           := $(CC_loader) -E
-AS_CPPFLAGS_kernel      = $(AS_CPPFLAGS)
 LD_kernel               := $(CC_kernel)
 LDFLAGS_kernel          = $(LDFLAGS) -T $(SRC)/linker.ld
 kernel.bin: $(SRC)/linker.ld
@@ -40,8 +37,7 @@ FLAGS                   := DEBUG
 DEBUG                   ?= 0
 
 WITH_DEBUG_CFLAGS       := -O0 -g -DDEBUG
-WITH_DEBUG_ASFLAGS      := --gen-debug
-WITH_DEBUG_AS_CPPFLAGS  := -DDEBUG
+WITH_DEBUG_ASFLAGS      := --gen-debug -DDEBUG
 WITH_DEBUG_LDFLAGS      := -O0 -g -DDEBUG
 
 WITHOUT_DEBUG_CFLAGS    := -O2
@@ -58,9 +54,6 @@ CFLAGS                  += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_CFLAGS))
 ASFLAGS                 += $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_ASFLAGS))
 ASFLAGS                 += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_ASFLAGS))
 
-AS_CPPFLAGS             += $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_AS_CPPFLAGS))
-AS_CPPFLAGS             += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_AS_CPPFLAGS))
-
 LDFLAGS                 += $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_LDFLAGS))
 LDFLAGS                 += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_LDFLAGS))
 LDFLAGS                 += $(LIBS:%=-l%)
@@ -68,6 +61,12 @@ LDFLAGS                 += $(LIBS:%=-l%)
 DIRS                    := $(ISO) $(ISO)/boot $(ISO)/boot/grub
 QUIET_DIRS              :=
 DEPS                    :=
+
+ifeq ($(findstring n,$(MAKEFLAGS)),)
+$(shell mkdir -p .bmake)
+$(shell $(MAKE) -sn | grep "^echo '" | wc -l >.bmake/all_files)
+$(shell echo 0 >.bmake/completed_files)
+endif
 
 define C_FILE_TEMPLATE
 DIRS                    += $(dir $(2:$(SRC)/%=$(OBJ)/%))
@@ -82,15 +81,18 @@ else
 	@$$(CC_$(1)) $$(CFLAGS_$(1)) -c $$< -o $$@
 endif
 	@echo $$(CC_$(1)) $$(CFLAGS_$(1)) >$(2:$(SRC)/%=.bmake/%.b)
-	@$$(CC_$(1)) $$(CFLAGS_$(1)) -M $$< | sed -E 's:$(patsubst %.c,%.o,$(notdir $(2))):$(2:$(SRC)/%=$(OBJ)/%.o):' >$(2:$(SRC)/%=.bmake/%.d)
+
+$(2:$(SRC)/%=.bmake/%.d): $(2) | $(dir $(2:$(SRC)/%=.bmake/%))
+	@$$(CC_$(1)) $$(CFLAGS_$(1)) -MM $$< | \
+	sed -E 's:$(patsubst %.c,%.o,$(notdir $(2))):$(2:$(SRC)/%=$(OBJ)/%.o) $(2:$(SRC)/%=.bmake/%.d):' >$(2:$(SRC)/%=.bmake/%.d)
 
 .PHONY: $$(shell echo $$(CC_$(1)) $$(CFLAGS_$(1)) | diff - $(2:$(SRC)/%=.bmake/%.b) 2>/dev/null || echo $(2:$(SRC)/%=$(OBJ)/%.o))
-
 endef
 
 define AS_FILE_TEMPLATE
 DIRS                    += $(dir $(2:$(SRC)/%=$(OBJ)/%))
 QUIET_DIRS              += $(dir $(2:$(SRC)/%=.bmake/%))
+DEPS                    += $(2:$(SRC)/%=.bmake/%.d)
 
 $(2:$(SRC)/%=$(OBJ)/%.o): $(2) | $(dir $(2:$(SRC)/%=$(OBJ)/%)) $(dir $(2:$(SRC)/%=.bmake/%))
 ifdef VERBOSE
@@ -101,35 +103,11 @@ else
 endif
 	@echo $$(AS_$(1)) $$(ASFLAGS_$(1)) >$(2:$(SRC)/%=.bmake/%.b)
 
+$(2:$(SRC)/%=.bmake/%.d): $(2) | $(dir $(2:$(SRC)/%=.bmake/%))
+	@$$(CC_$(1)) $$(CFLAGS_$(1)) -MM $$< | \
+	sed -E 's:$(patsubst %.S,%.o,$(notdir $(2))):$(2:$(SRC)/%=$(OBJ)/%.o) $(2:$(SRC)/%=.bmake/%.d):' >$(2:$(SRC)/%=.bmake/%.d)
+
 .PHONY: $$(shell echo $$(AS_$(1)) $$(ASFLAGS_$(1)) | diff - $(2:$(SRC)/%=.bmake/%.b) 2>/dev/null || echo $(2:$(SRC)/%=$(OBJ)/%.o))
-
-endef
-
-define AS_CPP_FILE_TEMPLATE
-DIRS                    += $(dir $(2:$(SRC)/%=$(OBJ)/%))
-QUIET_DIRS              += $(dir $(2:$(SRC)/%=.bmake/%))
-
-$(2:$(SRC)/%=$(OBJ)/%.o): $(2) | $(dir $(2:$(SRC)/%=$(OBJ)/%)) $(dir $(2:$(SRC)/%=.bmake/%))
-ifdef VERBOSE
-	@set -e; \
-	trap 'rm $(2:%.S=%.s)' EXIT; \
-	echo $$(AS_CPP_$(1)) $$(AS_CPPFLAGS_$(1)) $$< -o $(2:%.S=%.s); \
-	$$(AS_CPP_$(1)) $$(AS_CPPFLAGS_$(1)) $$< -o $(2:%.S=%.s); \
-	echo $$(AS_$(1)) $$(ASFLAGS_$(1)) -c $(2:%.S=%.s) -o $$@; \
-	$$(AS_$(1)) $$(ASFLAGS_$(1)) -c $(2:%.S=%.s) -o $$@
-else
-	@set -e; \
-	trap 'rm $(2:%.S=%.s)' EXIT; \
-	echo 'CPP     $(2:$(SRC)/%.S=%.s)'; \
-	$$(AS_CPP_$(1)) $$(AS_CPPFLAGS_$(1)) $$< -o $(2:%.S=%.s); \
-	echo 'AS      $$(@:$(OBJ)/%=%)'; \
-	$$(AS_$(1)) $$(ASFLAGS_$(1)) -c $(2:%.S=%.s) -o $$@
-endif
-	@echo $$(AS_CPP_$(1)) $$(AS_CPPFLAGS_$(1)) '&' $$(AS_$(1)) $$(ASFLAGS_$(1)) >$(2:$(SRC)/%=.bmake/%.b)
-
-.PHONY: $$(shell echo $$(AS_CPP_$(1)) $$(AS_CPPFLAGS_$(1)) '&' $$(AS_$(1)) $$(ASFLAGS_$(1)) | diff - $(2:$(SRC)/%=.bmake/%.b) 2>/dev/null || echo $(2:$(SRC)/%=$(OBJ)/%.o))
-.INTERMEDIATE: $(2:%.S=%.s)
-
 endef
 
 define TARGET_TEMPLATE
@@ -148,8 +126,7 @@ endif
 .PHONY: $$(shell echo $$(LD_$(1)) $$(LDFLAGS_$(1)) | diff - $(1:%=.bmake/%.bin.b) 2>/dev/null || echo $(1).bin)
 
 $(foreach f,$(filter %.c,$(SRCS_$(1))),$(eval $(call C_FILE_TEMPLATE,$(1),$(f))))
-$(foreach f,$(filter %.s,$(SRCS_$(1))),$(eval $(call AS_FILE_TEMPLATE,$(1),$(f))))
-$(foreach f,$(filter %.S,$(SRCS_$(1))),$(eval $(call AS_CPP_FILE_TEMPLATE,$(1),$(f))))
+$(foreach f,$(filter %.s %.S,$(SRCS_$(1))),$(eval $(call AS_FILE_TEMPLATE,$(1),$(f))))
 endef
 
 $(IMAGE): $(TARGETS:%=%.bin) $(SRC)/grub.cfg | $(ISO) $(ISO)/boot $(ISO)/boot/grub
@@ -183,6 +160,9 @@ else
 	@rm -rf $(IMAGE) $(TARGETS:%=%.bin) $(ISO) $(OBJ) $(DIST).tar.bz2 .bmake
 endif
 
+clean-deps:
+	@find .bmake -type f -regex '.*\.d' | xargs rm -f
+
 dist: clean
 ifdef VERBOSE
 	tar -cvf $(DIST).tar --exclude $(DIST).tar --exclude-vcs --exclude-vcs-ignores .
@@ -208,9 +188,16 @@ else
 	@qemu-system-x86_64 -no-shutdown -no-reboot -d int -drive format=raw,file=$(IMAGE)
 endif
 
+run-gdb: all
+ifdef VERBOSE
+	qemu-system-x86_64 -no-shutdown -no-reboot -d int -s -S -drive format=raw,file=$(IMAGE)
+else
+	@qemu-system-x86_64 -no-shutdown -no-reboot -d int -s -S -drive format=raw,file=$(IMAGE)
+endif
+
 todo-list:
 	@find src -type f | xargs cat | grep -F $$'TODO\nFIXME' | sed -E -e 's:(/\*|\*/)::g' -e 's/^ *//' -e 's/ *$$//'
 
-.PHONY: all clean dist run run-debug todo-list
+.PHONY: all clean clean-deps dist run run-debug todo-list
 
 -include $(DEPS)
