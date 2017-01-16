@@ -4,6 +4,33 @@
 
 void with_interrupts_disabled(void *, ...);
 
+
+#define SEQ \
+    X(0) \
+    X(1) \
+    X(2) \
+    X(3) \
+    X(4) \
+    X(5) \
+    X(6) \
+    X(7) \
+    X(8) \
+    X(9) \
+    X(10) \
+    X(11) \
+    X(12) \
+    X(13) \
+    X(14) \
+    X(15) \
+    X(16) \
+    X(17) \
+    X(18) \
+    X(19) \
+    X(20) \
+
+#define X(i) void interrupt_ ## i (void);
+SEQ
+#undef X
 typedef struct {
     uint16_t offset_1;
     uint16_t seg_sel;
@@ -32,6 +59,11 @@ void init_interrupts(void) {
     idtr->limit = 256 * sizeof(interrupt_descriptor_t) - 1;
     idtr->offset = idt_page;
     asm volatile ("lidt (%0)"::"r" (idtr));
+
+#define X(i) \
+    install_interrupt(interrupt_ ## i, i);
+    SEQ
+#undef X
 }
 
 void install_interrupt(uint64_t isr, uint8_t interrupt_no) {
