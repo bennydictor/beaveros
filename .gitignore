@@ -12,6 +12,7 @@ beaveros.tar.bz2
 *.log
 # Emacs swap and indent backup
 *~
+*#*
 # Mac OS' Finder magic stuff
 .DS_Store
 # Vim swap
