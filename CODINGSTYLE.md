@@ -1,4 +1,4 @@
-# Which lannguages to use
+# Which languages to use
 * C, 1999 standart edition with gnu extensions (`-std=gnu99`). Do not use trigraphs.
 * `x86` Assembler, GAS syntax
 * `x86_64` Assembler, GAS syntax

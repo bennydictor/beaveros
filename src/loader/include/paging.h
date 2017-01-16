@@ -33,7 +33,7 @@ void extend_used_memory(void *);
 void *get_used_memory(void);
 void *new_phys_page(void);
 void *new_phys_zero_page(void);
-void map_page(uint64_t, uint64_t, uint64_t);
-void setup_identity_paging(void *);
+void map_page(uint64_t virt, uint64_t phys, uint64_t flags);
+void setup_identity_paging();
 
 #endif /* BEAVER_PAGING_H */

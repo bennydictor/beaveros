@@ -218,6 +218,6 @@ typedef struct {
     } d_un;
 } elf64_dyn_t;
 
-bool load_elf64(void *file, uint64_t *entry);
+bool load_kernel(void *file, uint64_t *entry);
 
 #endif /* BEAVER_ELF64_H */
