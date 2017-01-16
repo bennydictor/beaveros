@@ -3,7 +3,6 @@
 .macro      GEN_ISR             n,          to
 .if         \to-\n
 .isr_\n:
-    cli
     mov     $\n,                %rdi
     jmp     .common_stub
 GEN_ISR     %(\n + 1),          to
@@ -41,3 +40,4 @@ GEN_ISR_PTR 192,                256
 
 .printf_interrupt:
     .ascii  "hOI!!!!!!\nI'm dEFAULT ISR #%#.2x!!\n\0"
+
