@@ -8,15 +8,26 @@ fi
 files=''
 if [ "$1" == 'all' ]; then
     files="$(find -L src -type f -regex '.*\.[ch]$')"
-elif [ "$1" == 'staged' ]; then
+elif [ "$1" == 'git-staged' ]; then
     files="$(git diff --cached --name-only | grep '\.[ch]$')"
+elif [ "$1" == 'git-from' -a -n "$2" ]; then
+    files="$(git diff "$2" --name-only | grep '\.[ch]$')"
+    if [ "$?" != '0' ]; then
+        echo "git diff $2 failed"
+        exit 1
+    fi
 elif [ -f "$1" ]; then
     files="$1"
 else
     echo "Usage: $0 FILE"
     echo "Usage: $0 all"
-    echo "Usage: $0 staged"
+    echo "Usage: $0 git-staged"
+    echo "Usage: $0 git-from COMMIT"
     exit 1
+fi
+
+if [ -z "$files" ]; then
+    exit 0
 fi
 
 args='
