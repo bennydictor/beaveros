@@ -27,7 +27,8 @@ typedef struct {
 /* TODO: move idt_page and co. to linker */
 static interrupt_descriptor_t *idt_page = (void *) 0xffffffffffffd000ULL;
 
-extern isr_t _default_isrs[256];
+extern isr_t _isr_table[256];
+extern isr_t _c_isr_table[256];
 
 static const char *interrupt_mnemonic[20] = {
     "DE", "DB", "NMI", "BP", "OF", "BR", "UD", "NM", "DF", "", "TS", "NP",
@@ -48,7 +49,7 @@ static const char *pf_error_mnemonics[5] = {
 };
 
 __attribute__ ((force_align_arg_pointer))
-void _default_common_stub(interrupt_frame_t frame) {
+void _default_c_isr(interrupt_frame_t frame) {
     printf("hOI!!!!!!\nI'm dEFAuLT iSR!!\n");
     printf("vector   = %#.2x", frame.vector);
     if (frame.vector < 20) {
@@ -95,6 +96,18 @@ void _default_common_stub(interrupt_frame_t frame) {
     terminate();
 }
 
+static void install_asm_isr(isr_t isr, uint8_t vector) {
+    interrupt_descriptor_t desc = { 0 };
+    desc.offset_1 = (uint64_t) isr & 0xffff;
+    desc.offset_2 = ((uint64_t) isr & 0xffff0000) >> 16;
+    desc.offset_3 = ((uint64_t) isr & 0xffffffff00000000ULL) >> 32;
+    desc.seg_sel = 8;
+    desc.dpl = 0;
+    desc.present = 1;
+    desc.type = 0xE;
+    idt_page[vector] = desc;
+}
+
 void interrupts_init(void) {
     ASSERT(sizeof(interrupt_descriptor_t) == 16);
     map_page(idt_page, MAP_ANON, PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
@@ -104,20 +117,12 @@ void interrupts_init(void) {
     idtr->offset = (uint64_t) idt_page;
 
     for (int i = 0; i < 256; ++i) {
-        install_isr(_default_isrs[i], i);
+        install_asm_isr(_isr_table[i], i);
     }
 
     asm volatile ("lidt (%0)"::"r" (idtr));
 }
 
-void install_isr(isr_t isr, uint8_t interrupt_no) {
-    interrupt_descriptor_t desc = { 0 };
-    desc.offset_1 = (uint64_t) isr & 0xffff;
-    desc.offset_2 = ((uint64_t) isr & 0xffff0000) >> 16;
-    desc.offset_3 = ((uint64_t) isr & 0xffffffff00000000ULL) >> 32;
-    desc.seg_sel = 8;
-    desc.dpl = 0;
-    desc.present = 1;
-    desc.type = 0xE;
-    idt_page[interrupt_no] = desc;
+void install_isr(isr_t isr, uint8_t vector) {
+    _c_isr_table[vector] = isr;
 }

@@ -1,4 +1,4 @@
-.extern         _default_common_stub
+.extern         _default_c_isr
 
 .altmacro
 
@@ -15,21 +15,21 @@
 .endif
     iretq
 
-GEN_ISR         %(\n + 1),          to,         err
+GEN_ISR         %(\n + 1),          \to,        \err
 .endif
 .endm
 
 .macro          GEN_ISR_PTR         n,          to
 .if             \to-\n
 .quad           .isr_\n
-GEN_ISR_PTR     %(\n + 1),          to
+GEN_ISR_PTR     %(\n + 1),          \to
 .endif
 .endm
 
-.macro          GEN_NULL_PTR        n,          to
+.macro          GEN_PTR             n,          to,     val=0
 .if             \to-\n
-.quad           0
-GEN_NULL_PTR    %(\n + 1),          to
+.quad           \val
+GEN_PTR         %(\n + 1),          \to,        \val
 .endif
 .endm
 
@@ -49,7 +49,7 @@ GEN_ISR         192,                256,        0
 
 .section        .data
 
-.globl          _default_isrs
+.globl          _isr_table
 _default_isrs:
 GEN_ISR_PTR     0,                  9
 GEN_NULL_PTR    9,                  10
@@ -63,3 +63,10 @@ GEN_ISR_PTR     32,                 64
 GEN_ISR_PTR     64,                 128
 GEN_ISR_PTR     128,                192
 GEN_ISR_PTR     192,                256
+
+.globl          _c_isr_table
+_c_isr_table:
+GEN_PTR         0,                  64,         _default_c_isr
+GEN_PTR         64,                 128,        _default_c_isr
+GEN_PTR         128,                192,        _default_c_isr
+GEN_PTR         192,                256         _default_c_isr
