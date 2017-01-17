@@ -6,23 +6,30 @@
 #include <stddef.h>
 #include <math.h>
 
+#if defined(__i386__)
+#define VA_LIST_PTR     va_list *
+#define VA_LIST_ARG(X)  (&(X))
+#define VA_LIST_REF(X)  (*(X))
+#elif defined(__x86_64__)
+#define VA_LIST_PTR     va_list
+#define VA_LIST_ARG(X)  (X)
+#define VA_LIST_REF(X)  (X)
+#else
+#error Unsupported architecture
+#endif
+
 #define IO_PRINTF_FLAG_PLUS                 1
 #define IO_PRINTF_FLAG_MINUS                2
 #define IO_PRINTF_FLAG_SPACE                4
 #define IO_PRINTF_FLAG_SHARP                8
 #define IO_PRINTF_FLAG_ZERO                 16
 #define IO_PRINTF_FLAG_PRECISION_SPECIFIED  32
-#define IO_PRINTF_FLAG_PARSE_ERROR          INT8_MIN
 
 #define IO_PRINTF_LENGTH_none   0
 #define IO_PRINTF_LENGTH_hh     1
 #define IO_PRINTF_LENGTH_h      2
 #define IO_PRINTF_LENGTH_l      3
 #define IO_PRINTF_LENGTH_ll     4
-/* j, z, t and L are just fucked up
-   TODO: j, z, t length specifiers in printf
-   TODO: %p specifier in printf
-   TODO: make only one printf realisation */
 
 typedef struct {
     uint8_t flags;
@@ -43,7 +50,7 @@ static uint16_t atoi(const char **str) {
 
 /* Format specifier structure: %[flags][width][.precision][length]specifier */
 static printf_format_specifier_t parse_format_specifier(const char
-        **format_ptr, va_list vlist) {
+        **format_ptr, VA_LIST_PTR vlist) {
     const char *format = *format_ptr;
     printf_format_specifier_t ans;
     ans.flags = 0;
@@ -78,7 +85,7 @@ static printf_format_specifier_t parse_format_specifier(const char
     /* Width */
     ans.width = 0;
     if (*format == '*') {
-        ans.width = va_arg(vlist, int);
+        ans.width = va_arg(VA_LIST_REF(vlist), int);
         ++format;
     } else {
         ans.width = atoi(&format);
@@ -90,7 +97,7 @@ static printf_format_specifier_t parse_format_specifier(const char
         ++format;
         ans.flags |= IO_PRINTF_FLAG_PRECISION_SPECIFIED;
         if (*format == '*') {
-            ans.precision = va_arg(vlist, int);
+            ans.precision = va_arg(VA_LIST_REF(vlist), int);
             ++format;
         } else {
             ans.precision = atoi(&format);
@@ -112,13 +119,23 @@ static printf_format_specifier_t parse_format_specifier(const char
             ++format;
             ans.length = IO_PRINTF_LENGTH_ll;
         }
+    } else if (*format == 'j') { /* We are only supporting i386 and x86_64,
+                                    so it's okay */
+        ans.length = IO_PRINTF_LENGTH_ll;
+    } else if (*format == 'z') {
+        ans.length = IO_PRINTF_LENGTH_ll;
+    } else if (*format == 't') {
+        ans.length = IO_PRINTF_LENGTH_ll;
     }
 
-    if (strchr("diuoxXfFeEgGaAcspn%", *format) != NULL) {
-        ans.specifier = *format++;
-    } else {
-        ans.specifier = '!';
-        ans.flags |= IO_PRINTF_FLAG_PARSE_ERROR;
+    ans.specifier = *format++;
+
+    if (ans.specifier == 'p') {
+        ans.flags = IO_PRINTF_FLAG_SHARP;
+        ans.width = 0;
+        ans.precision = sizeof(void *) / 8;
+        ans.length = IO_PRINTF_LENGTH_ll;
+        ans.specifier = 'x';
     }
 
     *format_ptr = format;
@@ -207,25 +224,26 @@ GEN_PRINTERS(H, 16, unsigned, "0X", true,);
 #define SUBROUTINE_HEADER(SUFFIX) \
 bool printf_subroutine_##SUFFIX(ocdev_t ocdev, \
         printf_format_specifier_t spec, \
-        va_list vlist)
+        VA_LIST_PTR vlist)
 
 #define GEN_SUBROUTINE(SUBROUTINE_SUFFIX, PRINTER_TYPE) \
 SUBROUTINE_HEADER(SUBROUTINE_SUFFIX) { \
     switch (spec.length) { \
     case IO_PRINTF_LENGTH_none: \
-        return print_##PRINTER_TYPE##_int(ocdev, spec, va_arg(vlist, int)); \
+        return print_##PRINTER_TYPE##_int(ocdev, spec, \
+                va_arg(VA_LIST_REF(vlist), int)); \
     case IO_PRINTF_LENGTH_hh: \
-        return print_##PRINTER_TYPE##_char(ocdev, spec, va_arg(vlist, int)); \
+        return print_##PRINTER_TYPE##_char(ocdev, spec, \
+                va_arg(VA_LIST_REF(vlist), int)); \
     case IO_PRINTF_LENGTH_h: \
-        return print_##PRINTER_TYPE##_s_int(ocdev, spec, va_arg(vlist, int)); \
+        return print_##PRINTER_TYPE##_s_int(ocdev, spec, \
+                va_arg(VA_LIST_REF(vlist), int)); \
     case IO_PRINTF_LENGTH_l: \
-        return print_##PRINTER_TYPE##_l_int(ocdev, \
-                spec, \
-                va_arg(vlist, long int)); \
+        return print_##PRINTER_TYPE##_l_int(ocdev, spec, \
+                va_arg(VA_LIST_REF(vlist), long int)); \
     case IO_PRINTF_LENGTH_ll: \
-        return print_##PRINTER_TYPE##_ll_int(ocdev, \
-                spec, \
-                va_arg(vlist, long long int)); \
+        return print_##PRINTER_TYPE##_ll_int(ocdev, spec, \
+                va_arg(VA_LIST_REF(vlist), long long int)); \
     } \
     return false; \
 } \
@@ -256,10 +274,7 @@ PRINTER_HEADER(string, char *) {
 }
 
 SUBROUTINE_HEADER(s) {
-    if (spec.length == IO_PRINTF_LENGTH_none) {
-        return print_string(ocdev, spec, va_arg(vlist, char *));
-    }
-    return false;
+    return print_string(ocdev, spec, va_arg(VA_LIST_REF(vlist), char *));
 }
 
 int printf(const char *format, ...) {
@@ -284,14 +299,14 @@ int vprintf(const char *format, va_list vlist) {
 
 #define CASE_SUBROUTINE(symbol, suffix) \
 case symbol : \
-    printf_subroutine_##suffix (ocdev, spec, vlist); \
+    printf_subroutine_##suffix (ocdev, spec, VA_LIST_ARG(vlist)); \
     break;
 
 int vdprintf(const ocdev_t ocdev, const char *format, va_list vlist) {
     while (*format) {
         if (*format == '%') {
             printf_format_specifier_t spec =
-                    parse_format_specifier(&format, vlist);
+                    parse_format_specifier(&format, VA_LIST_ARG(vlist));
             switch (spec.specifier) {
                 CASE_SUBROUTINE('d', d);
                 CASE_SUBROUTINE('i', i);

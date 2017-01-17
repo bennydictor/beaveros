@@ -17,10 +17,10 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
     vga_set_foreground(COLOR_LIGHT_GREEN);
     std_ocdev = vga_ocdev;
 
-    printf("CR0 = %#.16llx\n", get_cr(0));
-    printf("CR3 = %#.16llx\n", get_cr(3));
-    printf("CR4 = %#.16llx\n", get_cr(4));
-    printf("Used memory = %#.16llx\n", used_mem);
+    printf("CR0 = %#.16lx\n", get_cr(0));
+    printf("CR3 = %#.16lx\n", get_cr(3));
+    printf("CR4 = %#.16lx\n", get_cr(4));
+    printf("Used memory = %#.16lx\n", used_mem);
 
     multiboot2_fixed_part_t *multiboot2_header = (void *) multiboot;
 
@@ -42,7 +42,7 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
                     i * sizeof(multiboot2_memory_map_entry_t) <
                     memory_map->size; ++i) {
                 if (memory_map->entries[i].type == 1) {
-                    printf("base_addr=%#.16llx length=%#.16llx\n",
+                    printf("base_addr=%#.16lx length=%#.16lx\n",
                             memory_map->entries[i].base_addr,
                             memory_map->entries[i].length);
                     phys_mem = max_ull(phys_mem,
