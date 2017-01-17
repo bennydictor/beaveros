@@ -93,7 +93,9 @@ void _default_c_isr(interrupt_frame_t frame) {
     }
     printf("\niopl     = %d\n", (frame.rflags >> 12) & 0x3);
 
-    terminate();
+    if (frame.vector != 0x80) { /* for testing interrupt return */
+        terminate();
+    }
 }
 
 static void install_asm_isr(isr_t isr, uint8_t vector) {

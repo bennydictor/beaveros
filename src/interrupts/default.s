@@ -9,12 +9,10 @@
     push        $0
 .endif
     movl        $\n,                    4(%rsp)
-    movq        $\n,                    %rax
-    movq        _c_isr_table(,%rax,8),  %rax
+    mov         $\n,                    %rax
+    mov         _c_isr_table(,%rax,8),  %rax
     call        *%rax
-.if 1-\err
     add         $8,                     %rsp
-.endif
     iretq
 
 GEN_ISR         %(\n + 1),              \to,        \err
