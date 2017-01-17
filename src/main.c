@@ -7,6 +7,7 @@
 #include <math.h>
 #include <mapper.h>
 #include <isr.h>
+#include <apic.h>
 
 __attribute__ ((force_align_arg_pointer))
 __attribute__ ((noreturn))
@@ -57,9 +58,7 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
     add_phys_mem((void *) used_mem, phys_mem - used_mem);
 
     isr_init();
-
-    asm volatile ("int $0x80");
-    *((int *) 0xdeadbeef) = 0x15135515; /* for testing, throws #PF */
+    apic_init();
 
     terminate();
 }
