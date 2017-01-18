@@ -22,6 +22,25 @@ wrcr\n:
 GEN         \n
 .endr
 
+.globl      rdmsr
+.type       rdmsr,      @function
+rdmsr:
+    mov     %rdi,       %rcx
+    rdmsr
+    shl     $32,        %rdx
+    or      %rdx,       %rax
+    ret
+
+.globl      wrmsr
+.type       wrmsr,      @function
+wrmsr:
+    mov     %rdi,       %rcx
+    mov     %rsi,       %rax
+    mov     %rsi,       %rdx
+    shr     $32,        %rdx
+    wrmsr
+    ret
+
 .globl      cpuid
 .type       cpuid,      @function
 
