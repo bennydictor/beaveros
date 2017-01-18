@@ -3,6 +3,9 @@ SRC                     := src
 OBJ                     := obj
 ISO                     := iso
 
+QEMU                    := qemu-system-x86_64
+QEMUFLAGS               := -drive format=raw,file=$(IMAGE)
+
 CFLAGS                  := -std=gnu99 -Wall -Wextra -Wshadow -ffreestanding
 ASFLAGS                 := -DASSEMBLER
 LDFLAGS                 := -ffreestanding -nostdlib -z max-page-size=0x1000
@@ -33,15 +36,21 @@ LD_kernel               := $(CC_kernel)
 LDFLAGS_kernel          = $(LDFLAGS) -T $(SRC)/linker.ld
 kernel.bin: $(SRC)/linker.ld
 
-FLAGS                   := DEBUG
+FLAGS                   := DEBUG WERROR
 DEBUG                   ?= 0
+WERROR                  ?= 0
 
 WITH_DEBUG_CFLAGS       := -O0 -g -DDEBUG
-WITH_DEBUG_ASFLAGS      := --gen-debug -DDEBUG
-WITH_DEBUG_LDFLAGS      := -O0 -g -DDEBUG
+WITH_DEBUG_ASFLAGS      := $(WITH_DEBUG_CFLAGS)
+WITH_DEBUG_LDFLAGS      := $(WITH_DEBUG_CFLAGS)
+WITH_DEBUG_QEMUFLAGS    := -no-shutdown -no-reboot -d int -monitor stdio -s
 
 WITHOUT_DEBUG_CFLAGS    := -O2
 WITHOUT_DEBUG_LDFLAGS   := -O2
+
+WITH_WERROR_CFLAGS      := -Werror
+WITH_WERROR_ASFLAGS     := -Werror
+WITH_WERROR_LDFLAGS     := -Werror
 
 # Do not change below this line, unless you know what are you doing
 
@@ -53,6 +62,9 @@ CFLAGS                  += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_CFLAGS))
 
 ASFLAGS                 += $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_ASFLAGS))
 ASFLAGS                 += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_ASFLAGS))
+
+QEMUFLAGS               += $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_QEMUFLAGS))
+QEMUFLAGS               += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_QEMUFLAGS))
 
 LDFLAGS                 += $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_LDFLAGS))
 LDFLAGS                 += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_LDFLAGS))
@@ -174,25 +186,11 @@ else
 	@bzip2 $(DIST).tar
 endif
 
-run: all
+run:
 ifdef VERBOSE
-	qemu-system-x86_64 -drive format=raw,file=$(IMAGE)
+	$(QEMU) $(QEMUFLAGS)
 else
-	@qemu-system-x86_64 -drive format=raw,file=$(IMAGE)
-endif
-
-run-debug: all
-ifdef VERBOSE
-	qemu-system-x86_64 -no-shutdown -no-reboot -d int -drive format=raw,file=$(IMAGE)
-else
-	@qemu-system-x86_64 -no-shutdown -no-reboot -d int -drive format=raw,file=$(IMAGE)
-endif
-
-run-gdb: all
-ifdef VERBOSE
-	qemu-system-x86_64 -no-shutdown -no-reboot -d int -s -S -drive format=raw,file=$(IMAGE)
-else
-	@qemu-system-x86_64 -no-shutdown -no-reboot -d int -s -S -drive format=raw,file=$(IMAGE)
+	@$(QEMU) $(QEMUFLAGS)
 endif
 
 todo-list:
