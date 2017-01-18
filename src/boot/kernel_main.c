@@ -8,7 +8,7 @@
 #include <math.h>
 #include <mapper.h>
 #include <debug.h>
-#include <assert.h>
+#include <interrupts.h>
 
 __attribute__ ((force_align_arg_pointer))
 __attribute__ ((noreturn))
@@ -55,6 +55,10 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
     }
 
     mapper_init(phys_mem, used_mem);
+    interrupts_init();
+
+    asm volatile ("int $0x80");
+    *((int *) 0xdeadbeef) = 0x15135515; /* for testing, throws #PF */
 
     DEBUG_HLT;
 }

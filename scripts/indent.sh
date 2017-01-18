@@ -77,7 +77,7 @@ args="$args $(cat $files | tr '\n' ' ' | \
     egrep -o 'typedef (struct|enum|union) {[^}]*}[^;]*;' | \
     sed -E 's/.*\W(\w+);$/-T \1/' | sort -u)"
 args="$args $(cat $files | \
-    egrep -o 'typedef.*;' | \
+    egrep -o 'typedef.*\w+;' | \
     sed -E 's/.*\W(\w+);$/-T \1/' | sort -u)"
 
 indent $args $files
