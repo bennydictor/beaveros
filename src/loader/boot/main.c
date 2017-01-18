@@ -2,20 +2,20 @@
 #include <io/ocdev.h>
 #include <io/printf.h>
 #include <string.h>
-#include <panic.h>
 #include <multiboot2.h>
+#include <terminate.h>
 #include <elf64.h>
 #include <cpuid.h>
 #include <paging.h>
 #include <long_mode.h>
 
 void loader_main(uint32_t eax, uint32_t ebx) {
-    vga_init();
+    vga_init((void *) 0xb8000);
     vga_set_foreground(COLOR_LIGHT_GREEN);
     std_ocdev = vga_ocdev;
 
     if (eax != 0x36d76289) {
-        PANIC("Not loaded by multiboot2 loader");
+        PANIC("not loaded by multiboot2 loader");
     }
     if (!check_cpuid()) {
         PANIC("CPU doesn't support cpuid instruction");
@@ -42,15 +42,15 @@ void loader_main(uint32_t eax, uint32_t ebx) {
         tag = multiboot2_next_tag(tag);
     }
     if (!kernel_start) {
-        PANIC("Kernel not found");
+        PANIC("kernel not found");
     }
     if ((uint32_t) kernel_start & 0xfff) {
-        PANIC("Kernel not aligned");
+        PANIC("kernel not aligned");
     }
     extend_used_memory(kernel_end);
     uint64_t kernel_entry;
     if (!load_kernel(kernel_start, &kernel_entry)) {
-        PANIC("Can't load kernel");
+        PANIC("can't load kernel");
     }
 
     setup_identity_paging();

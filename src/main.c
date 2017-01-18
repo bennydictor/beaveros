@@ -2,24 +2,23 @@
 #include <io/ocdev.h>
 #include <io/printf.h>
 #include <multiboot2.h>
-#include <registers.h>
+#include <cpu.h>
 #include <terminate.h>
-#include <panic.h>
 #include <math.h>
 #include <mapper.h>
-#include <debug.h>
-#include <interrupts.h>
+#include <isr.h>
 
 __attribute__ ((force_align_arg_pointer))
 __attribute__ ((noreturn))
 void kernel_main(void *multiboot, uint64_t used_mem) {
-    vga_init();
+    vga_init((void *) 0xb8000);
     vga_set_foreground(COLOR_LIGHT_GREEN);
     std_ocdev = vga_ocdev;
 
-    printf("CR0 = %#.16lx\n", get_cr(0));
-    printf("CR3 = %#.16lx\n", get_cr(3));
-    printf("CR4 = %#.16lx\n", get_cr(4));
+    printf("If you see tEMMIE, something has gone terribly wrong.\n");
+    printf("CR0 = %#.16lx\n", rdcr0());
+    printf("CR3 = %#.16lx\n", rdcr3());
+    printf("CR4 = %#.16lx\n", rdcr4());
     printf("Used memory = %#.16lx\n", used_mem);
 
     multiboot2_fixed_part_t *multiboot2_header = (void *) multiboot;
@@ -45,7 +44,7 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
                     printf("base_addr=%#.16lx length=%#.16lx\n",
                             memory_map->entries[i].base_addr,
                             memory_map->entries[i].length);
-                    phys_mem = max_ull(phys_mem,
+                    phys_mem = ullmax(phys_mem,
                             memory_map->entries[i].base_addr +
                             memory_map->entries[i].length);
                 }
@@ -54,11 +53,13 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
         tag = multiboot2_next_tag(tag);
     }
 
-    mapper_init(phys_mem, used_mem);
-    interrupts_init();
+    mapper_init();
+    add_phys_mem((void *) used_mem, phys_mem - used_mem);
+
+    isr_init();
 
     asm volatile ("int $0x80");
     *((int *) 0xdeadbeef) = 0x15135515; /* for testing, throws #PF */
 
-    DEBUG_HLT;
+    terminate();
 }

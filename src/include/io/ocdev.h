@@ -5,8 +5,8 @@
 
 typedef struct {
     void (*putc) (char);
-    void (*puts) (const char *);
-    void (*putns) (const char *, size_t);
+    int (*puts) (const char *);
+    int (*putns) (const char *, size_t);
 } ocdev_t;
 
 extern ocdev_t std_ocdev;

@@ -1,4 +1,5 @@
 .section    .text
+
 .globl      terminate
 .type       terminate,  @function
 

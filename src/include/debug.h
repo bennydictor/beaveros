@@ -1,13 +1,15 @@
 #ifndef BEAVER_DEBUG_H
 #define BEAVER_DEBUG_H
 
-#define DEBUG_HLT ({ \
-    printf("hOI!"); \
+#include <terminate.h>
+
+#define DEBUG_BREAKPOINT ({ \
+    printf("hOI!!!!!! I'm bREAKPOINT!!\n"); \
     terminate(); \
 })
 
-#define DEBUG_HLT_N(X) ({ \
-    printf("hOI! #%d", (X)); \
+#define DEBUG_BREAKPOINT_N(N) ({ \
+    printf("hOI!!!!!! I'm bREAKPOINT #%d!!\n", (N)); \
     terminate(); \
 })
 

@@ -15,21 +15,21 @@
 #define VA_LIST_ARG(X)  (X)
 #define VA_LIST_REF(X)  (X)
 #else
-#error Unsupported architecture
+#error unsupported architecture
 #endif
 
-#define IO_PRINTF_FLAG_PLUS                 1
-#define IO_PRINTF_FLAG_MINUS                2
-#define IO_PRINTF_FLAG_SPACE                4
-#define IO_PRINTF_FLAG_SHARP                8
-#define IO_PRINTF_FLAG_ZERO                 16
-#define IO_PRINTF_FLAG_PRECISION_SPECIFIED  32
+#define FLAG_PLUS                 1
+#define FLAG_MINUS                2
+#define FLAG_SPACE                4
+#define FLAG_SHARP                8
+#define FLAG_ZERO                 16
+#define FLAG_PRECISION_SPECIFIED  32
 
-#define IO_PRINTF_LENGTH_none   0
-#define IO_PRINTF_LENGTH_hh     1
-#define IO_PRINTF_LENGTH_h      2
-#define IO_PRINTF_LENGTH_l      3
-#define IO_PRINTF_LENGTH_ll     4
+#define LENGTH_none   0
+#define LENGTH_hh     1
+#define LENGTH_h      2
+#define LENGTH_l      3
+#define LENGTH_ll     4
 
 typedef struct {
     uint8_t flags;
@@ -62,19 +62,19 @@ static printf_format_specifier_t parse_format_specifier(const char
         ++format;
         switch (*format) {
         case '-':
-            ans.flags |= IO_PRINTF_FLAG_MINUS;
+            ans.flags |= FLAG_MINUS;
             break;
         case '+':
-            ans.flags |= IO_PRINTF_FLAG_PLUS;
+            ans.flags |= FLAG_PLUS;
             break;
         case ' ':
-            ans.flags |= IO_PRINTF_FLAG_SPACE;
+            ans.flags |= FLAG_SPACE;
             break;
         case '#':
-            ans.flags |= IO_PRINTF_FLAG_SHARP;
+            ans.flags |= FLAG_SHARP;
             break;
         case '0':
-            ans.flags |= IO_PRINTF_FLAG_ZERO;
+            ans.flags |= FLAG_ZERO;
             break;
         default:
             are_there_flags = false;
@@ -95,7 +95,7 @@ static printf_format_specifier_t parse_format_specifier(const char
     ans.precision = 0;
     if (*format == '.') {
         ++format;
-        ans.flags |= IO_PRINTF_FLAG_PRECISION_SPECIFIED;
+        ans.flags |= FLAG_PRECISION_SPECIFIED;
         if (*format == '*') {
             ans.precision = va_arg(VA_LIST_REF(vlist), int);
             ++format;
@@ -103,38 +103,40 @@ static printf_format_specifier_t parse_format_specifier(const char
             ans.precision = atoi(&format);
         }
     }
+
     /* Length */
-    ans.length = IO_PRINTF_LENGTH_none;
+    ans.length = LENGTH_none;
     if (*format == 'h') {
         ++format;
-        ans.length = IO_PRINTF_LENGTH_h;
+        ans.length = LENGTH_h;
         if (*format == 'h') {
             ++format;
-            ans.length = IO_PRINTF_LENGTH_hh;
+            ans.length = LENGTH_hh;
         }
     } else if (*format == 'l') {
         ++format;
-        ans.length = IO_PRINTF_LENGTH_l;
+        ans.length = LENGTH_l;
         if (*format == 'l') {
             ++format;
-            ans.length = IO_PRINTF_LENGTH_ll;
+            ans.length = LENGTH_ll;
         }
     } else if (*format == 'j') { /* We are only supporting i386 and x86_64,
                                     so it's okay */
-        ans.length = IO_PRINTF_LENGTH_ll;
-    } else if (*format == 'z') {
-        ans.length = IO_PRINTF_LENGTH_ll;
-    } else if (*format == 't') {
-        ans.length = IO_PRINTF_LENGTH_ll;
+        ++format;
+        ans.length = LENGTH_ll;
+    } else if (*format == 'z' || *format == 't') {
+        ++format;
+        ans.length = LENGTH_l;
     }
 
+    /* Specifier */
     ans.specifier = *format++;
 
     if (ans.specifier == 'p') {
-        ans.flags = IO_PRINTF_FLAG_SHARP;
+        ans.flags = FLAG_SHARP;
         ans.width = 0;
         ans.precision = sizeof(void *) / 8;
-        ans.length = IO_PRINTF_LENGTH_ll;
+        ans.length = LENGTH_ll;
         ans.specifier = 'x';
     }
 
@@ -148,7 +150,7 @@ static printf_format_specifier_t parse_format_specifier(const char
 #define BUF_SIZE 25
 
 #define PRINTER_HEADER(SUFFIX, TYPE) \
-bool print_##SUFFIX(ocdev_t ocdev, printf_format_specifier_t spec, TYPE d)
+int print_##SUFFIX(ocdev_t ocdev, printf_format_specifier_t spec, TYPE d)
 
 #define SIGN_CHECKER \
     if (d < 0) { \
@@ -158,48 +160,55 @@ bool print_##SUFFIX(ocdev_t ocdev, printf_format_specifier_t spec, TYPE d)
 
 #define INTEGER_PRINTER(SUFFIX, TYPE, BASE, PREFIX, UPPERCASE, SIGN_CHECK) \
 PRINTER_HEADER(SUFFIX, TYPE) { \
-    INIT_DIGITS(UPPERCASE); \
+    int ret = 0; \
+    INIT_DIGITS((UPPERCASE)); \
     char buf[BUF_SIZE]; \
     buf[BUF_SIZE - 1] = 0; \
     char sign_c = 0; \
-    SIGN_CHECK if (spec.flags & IO_PRINTF_FLAG_PLUS) { \
+    SIGN_CHECK if (spec.flags & FLAG_PLUS) { \
         sign_c = '+'; \
-    } else if (spec.flags & IO_PRINTF_FLAG_SPACE) { \
+    } else if (spec.flags & FLAG_SPACE) { \
         sign_c = ' '; \
     } \
     char *buf_writer = buf + BUF_SIZE - 1; \
     /* I want to print 0x0 instead of 0 */ \
-    int prefix_len = (spec.flags & IO_PRINTF_FLAG_SHARP) ? strlen(PREFIX) : 0; \
+    int prefix_len = \
+            (spec.flags & FLAG_SHARP) ? strlen((PREFIX)) : 0; \
     while (d > 0) { \
         *(--buf_writer) = DIGITS[d % (BASE)]; \
         d /= (BASE); \
     } \
-    if (!(spec.flags & IO_PRINTF_FLAG_PRECISION_SPECIFIED)) { \
+    if (!(spec.flags & FLAG_PRECISION_SPECIFIED)) { \
         spec.precision = 1; \
     } \
     int digits = (buf + BUF_SIZE - 1) - buf_writer; \
     int non_space_characters = \
             (sign_c ? 1 : 0) + max(spec.precision, digits) + prefix_len; \
-    char width_padder = (spec.flags & IO_PRINTF_FLAG_ZERO) ? '0' : ' '; \
-    if (!(spec.flags & IO_PRINTF_FLAG_MINUS)) {\
+    char width_padder = (spec.flags & FLAG_ZERO) ? '0' : ' '; \
+    if (!(spec.flags & FLAG_MINUS)) {\
         for (int i = non_space_characters; i < spec.width; ++i) { \
             ocdev.putc(width_padder); \
+            ++ret; \
         } \
     } \
     if (sign_c) { \
         ocdev.putc(sign_c); \
+        ++ret; \
     } \
     ocdev.putns(PREFIX, prefix_len); \
+    ret += prefix_len; \
     for (int i = digits; i < spec.precision; ++i) { \
         ocdev.putc('0'); \
+        ++ret; \
     } \
-    ocdev.puts(buf_writer); \
-    if (spec.flags & IO_PRINTF_FLAG_MINUS) {\
+    ret += ocdev.puts(buf_writer); \
+    if (spec.flags & FLAG_MINUS) {\
         for (int i = non_space_characters; i < spec.width; ++i) { \
-            ocdev.putc(' ' /*width_padder*/); \
+            ocdev.putc(' '); \
+            ++ret; \
         } \
     } \
-    return true; \
+    return ret; \
 }
 
 #define GEN_PRINTERS(COMMON_SUFFIX, BASE, SIGN, PREFIX, \
@@ -222,30 +231,30 @@ GEN_PRINTERS(h, 16, unsigned, "0x", false,);
 GEN_PRINTERS(H, 16, unsigned, "0X", true,);
 
 #define SUBROUTINE_HEADER(SUFFIX) \
-bool printf_subroutine_##SUFFIX(ocdev_t ocdev, \
+int printf_subroutine_##SUFFIX(ocdev_t ocdev, \
         printf_format_specifier_t spec, \
         VA_LIST_PTR vlist)
 
 #define GEN_SUBROUTINE(SUBROUTINE_SUFFIX, PRINTER_TYPE) \
 SUBROUTINE_HEADER(SUBROUTINE_SUFFIX) { \
     switch (spec.length) { \
-    case IO_PRINTF_LENGTH_none: \
+    case LENGTH_none: \
         return print_##PRINTER_TYPE##_int(ocdev, spec, \
                 va_arg(VA_LIST_REF(vlist), int)); \
-    case IO_PRINTF_LENGTH_hh: \
+    case LENGTH_hh: \
         return print_##PRINTER_TYPE##_char(ocdev, spec, \
                 va_arg(VA_LIST_REF(vlist), int)); \
-    case IO_PRINTF_LENGTH_h: \
+    case LENGTH_h: \
         return print_##PRINTER_TYPE##_s_int(ocdev, spec, \
                 va_arg(VA_LIST_REF(vlist), int)); \
-    case IO_PRINTF_LENGTH_l: \
+    case LENGTH_l: \
         return print_##PRINTER_TYPE##_l_int(ocdev, spec, \
                 va_arg(VA_LIST_REF(vlist), long int)); \
-    case IO_PRINTF_LENGTH_ll: \
+    case LENGTH_ll: \
         return print_##PRINTER_TYPE##_ll_int(ocdev, spec, \
                 va_arg(VA_LIST_REF(vlist), long long int)); \
     } \
-    return false; \
+    __builtin_unreachable(); \
 } \
 
 GEN_SUBROUTINE(d, s);
@@ -255,26 +264,26 @@ GEN_SUBROUTINE(o, o);
 GEN_SUBROUTINE(x, h);
 GEN_SUBROUTINE(X, H);
 
-PRINTER_HEADER(string, char *) {
-    uint32_t len = strlen(d);
-    uint32_t chars = (spec.flags & IO_PRINTF_FLAG_PRECISION_SPECIFIED) ?
-            umin(len, spec.precision) : len;
-    if (!(spec.flags & IO_PRINTF_FLAG_MINUS)) {
-        for (uint32_t i = chars; i < spec.width; ++i) {
-            ocdev.putc(' ');
-        }
-    }
-    ocdev.putns(d, chars);
-    if (spec.flags & IO_PRINTF_FLAG_MINUS) {
-        for (uint32_t i = chars; i < spec.width; ++i) {
-            ocdev.putc(' ');
-        }
-    }
-    return true;
-}
-
 SUBROUTINE_HEADER(s) {
-    return print_string(ocdev, spec, va_arg(VA_LIST_REF(vlist), char *));
+    int ret = 0;
+    char *d = va_arg(VA_LIST_REF(vlist), char *);
+    uint32_t len = strlen(d);
+    uint32_t chars = (spec.flags & FLAG_PRECISION_SPECIFIED) ?
+            umin(len, spec.precision) : len;
+    if (!(spec.flags & FLAG_MINUS)) {
+        for (uint32_t i = chars; i < spec.width; ++i) {
+            ocdev.putc(' ');
+            ++ret;
+        }
+    }
+    ret += ocdev.putns(d, chars);
+    if (spec.flags & FLAG_MINUS) {
+        for (uint32_t i = chars; i < spec.width; ++i) {
+            ocdev.putc(' ');
+            ++ret;
+        }
+    }
+    return ret;
 }
 
 int printf(const char *format, ...) {
@@ -297,12 +306,13 @@ int vprintf(const char *format, va_list vlist) {
     return vdprintf(std_ocdev, format, vlist);
 }
 
-#define CASE_SUBROUTINE(symbol, suffix) \
-case symbol : \
-    printf_subroutine_##suffix (ocdev, spec, VA_LIST_ARG(vlist)); \
+#define CASE_SUBROUTINE(SYMBOL, SUFFIX) \
+case SYMBOL: \
+    ret += printf_subroutine_##SUFFIX(ocdev, spec, VA_LIST_ARG(vlist)); \
     break;
 
 int vdprintf(const ocdev_t ocdev, const char *format, va_list vlist) {
+    int ret = 0;
     while (*format) {
         if (*format == '%') {
             printf_format_specifier_t spec =
@@ -317,17 +327,17 @@ int vdprintf(const ocdev_t ocdev, const char *format, va_list vlist) {
                 CASE_SUBROUTINE('s', s);
             case 'c':
                 ocdev.putc(va_arg(vlist, int));
+                ++ret;
                 break;
             case '%':          /* The simpliest subroutine */
                 ocdev.putc('%');
-                break;
-            default:
-                ocdev.puts("<Not-Implemented-Yet>");
+                ++ret;
                 break;
             }
         } else {
             ocdev.putc(*format++);
+            ++ret;
         }
     }
-    return 0;
+    return ret;
 }

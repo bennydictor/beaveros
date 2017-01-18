@@ -1,7 +1,7 @@
 #include <paging.h>
 #include <string.h>
 #include <stdbool.h>
-#include <assert.h>
+#include <terminate.h>
 
 #define BITS(X, L, H) (((X) >> (L)) & ((1 << ((H) - (L))) - 1))
 #define ALIGN_TO_NEXT_PAGE(X) ((void *) (((((uint32_t) (X)) - 1U) & \
@@ -73,7 +73,7 @@ void map_page(uint64_t virt, uint64_t phys, uint64_t flags) {
     *pte |= phys;
 }
 
-void setup_identity_paging() {
+void setup_identity_paging(void) {
     for (uint64_t i = 0; i < (uint64_t) (uint32_t) used_memory; i += PAGE_SIZE) {
         map_page(i, i, PAGE_RW_BIT | PAGE_G_BIT);
     }

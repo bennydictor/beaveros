@@ -68,6 +68,8 @@ args='
 --space-after-while
 --swallow-optional-blank-lines
 --tab-size1
+-T int32_t
+-T uint32_t
 -T int64_t
 -T uint64_t
 -T va_list
@@ -80,4 +82,4 @@ args="$args $(cat $files | \
     egrep -o 'typedef.*\w+;' | \
     sed -E 's/.*\W(\w+);$/-T \1/' | sort -u)"
 
-indent $args $files
+echo $files | xargs -n1 indent $args 2>/dev/null

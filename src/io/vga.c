@@ -1,5 +1,5 @@
 #include <io/vga.h>
-#include <io/portio.h>
+#include <io/port.h>
 
 static uint16_t *vga_buffer;
 static uint16_t vga_width;
@@ -11,6 +11,7 @@ const ocdev_t vga_ocdev = { vga_putc, vga_puts, vga_putns };
 
 static void vga_update_cursor(void) {
     uint16_t cursor = vga_x + vga_width * vga_y;
+    /* TODO: defines for IO ports */
     outb(0x3D4, 14);
     outb(0x3D5, cursor >> 8);
     outb(0x3D4, 15);
@@ -42,8 +43,8 @@ static void vga_scroll(void) {
     vga_update_cursor();
 }
 
-void vga_init(void) {
-    vga_buffer = (uint16_t *) 0xb8000;
+void vga_init(void *vbuffer) {
+    vga_buffer = vbuffer;
     vga_width = 80;
     vga_height = 25;
     vga_set_color(COLOR_BLACK << 4 | COLOR_WHITE);
@@ -92,16 +93,22 @@ void vga_clear() {
     vga_update_cursor();
 }
 
-void vga_puts(const char *str) {
+int vga_puts(const char *str) {
+    int ret = 0;
     while (*str) {
         vga_putc(*str++);
+        ++ret;
     }
+    return ret;
 }
 
-void vga_putns(const char *str, size_t length) {
-    while (length--) {
+int vga_putns(const char *str, size_t length) {
+    int ret = 0;
+    while (*str && length--) {
         vga_putc(*str++);
+        ++ret;
     }
+    return ret;
 }
 
 void vga_move_cursor(uint16_t x, uint16_t y) {
@@ -130,13 +137,13 @@ void vga_set_color(uint8_t color) {
     vga_color = color;
 }
 
-void vga_set_foreground(vga_color_t color) {
-    vga_color &= -16;
+void vga_set_foreground(uint8_t color) {
+    vga_color &= 0xf0;
     vga_color |= color;
 }
 
-void vga_set_background(vga_color_t color) {
-    vga_color &= 15;
+void vga_set_background(uint8_t color) {
+    vga_color &= 0x0f;
     vga_color |= color << 4;
 }
 

@@ -5,11 +5,11 @@ SECTIONS {
     . = 0xffffffff80000000; /* -2G */
 
     .text : ALIGN(0x1000) {
-        *(.text)
+        *(.text*)
     }
 
     .data : ALIGN(0x1000) {
-        *(.data)
+        *(.data*)
     }
 
     .rodata : ALIGN(0x1000) {
@@ -22,10 +22,14 @@ SECTIONS {
     }
 
     .eh_frame : ALIGN(0x1000) {
-        *(.eh_frame)
+        *(.eh_frame*)
     }
 
 	.comment : ALIGN(0x1000) {
         *(.note*) *(.comment*)
     }
+
+    _idt_page = 0xffffffffffffd000;
+    _phys_window_pt = 0xffffffffffffe000;
+    _phys_window_page = 0xfffffffffffff000;
 }

@@ -1,6 +1,6 @@
-#include <io/portio.h>
+#include <io/port.h>
 
-/* TODO: rewrite portio.c in assembler */
+/* TODO: rewrite port.c in assembler */
 void outb(uint16_t port, uint8_t val) {
     asm volatile ("outb %0, %1"::"a" (val), "Nd"(port));
 }

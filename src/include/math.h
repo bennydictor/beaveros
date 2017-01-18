@@ -3,11 +3,24 @@
 
 #include <stdint.h>
 
-int min(int, int);
-int max(int, int);
-unsigned int umin(unsigned int, unsigned int);
-unsigned int umax(unsigned int, unsigned int);
-uint64_t min_ull(uint64_t, uint64_t);
-uint64_t max_ull(uint64_t, uint64_t);
+#define GEN(TYPE, PREFIX) \
+__attribute__ ((always_inline)) \
+static inline TYPE PREFIX##min(TYPE a, TYPE b) { \
+    return a < b ? a : b; \
+} \
+\
+static inline TYPE PREFIX##max(TYPE a, TYPE b) { \
+    return a > b ? a : b; \
+}
+
+GEN(int,)
+GEN(unsigned int, u)
+GEN(long int, l)
+GEN(unsigned long int, ul)
+GEN(long long int, ll)
+GEN(unsigned long long int, ull)
+GEN(intmax_t, imax)
+
+#undef GEN
 
 #endif /* BEAVER_MATH_H */

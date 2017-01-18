@@ -39,7 +39,7 @@ typedef struct {
 
 typedef void (*isr_t) (interrupt_frame_t);
 
-void interrupts_init(void);
+void isr_init(void);
 void install_isr(isr_t isr, uint8_t vector);
 
 #endif
