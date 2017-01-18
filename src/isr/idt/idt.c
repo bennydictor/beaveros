@@ -1,4 +1,4 @@
-#include <isr.h>
+#include <isr/idt.h>
 #include <mapper.h>
 #include <string.h>
 #include <cpu.h>

@@ -1,13 +1,13 @@
 #include <io/vga.h>
 #include <io/ocdev.h>
 #include <io/printf.h>
+#include <isr/idt.h>
+#include <isr/apic.h>
 #include <multiboot2.h>
 #include <cpu.h>
 #include <terminate.h>
 #include <math.h>
 #include <mapper.h>
-#include <isr.h>
-#include <apic.h>
 
 __attribute__ ((force_align_arg_pointer))
 __attribute__ ((noreturn))

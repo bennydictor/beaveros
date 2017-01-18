@@ -2,6 +2,7 @@
 #define BEAVER_MAPPER_H
 
 #include <stdint.h>
+#include <terminate.h>
 
 #define PAGE_P_BIT      (1ULL << 0)
 #define PAGE_RW_BIT     (1ULL << 1)
