@@ -2,7 +2,11 @@
 #include <cpu.h>
 #include <stdint.h>
 #include <terminate.h>
+#include <mapper.h>
 #include <io/port.h>
+
+extern void *_apic_page;
+static void *apic_page = &_apic_page;
 
 void apic_init(void) {
     /* check if APIC is available */
@@ -16,6 +20,9 @@ void apic_init(void) {
     if (!(msr & APIC_BASE_ENABLE_BIT)) {
         PANIC("APIC is not enabled\nReboot and try again");
     }
+
+    map_page(apic_page, (void *) (msr & PAGE_ADDR_BITS),
+            PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
 
     /* Disable PIC 8259 */
     outb(PORT_PIC8259_MASTER_COMMAND, 0xff);

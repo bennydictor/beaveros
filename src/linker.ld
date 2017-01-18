@@ -29,7 +29,15 @@ SECTIONS {
         *(.note*) *(.comment*)
     }
 
-    _idt_page = 0xffffffffffffd000;
-    _phys_window_pt = 0xffffffffffffe000;
-    _phys_window_page = 0xfffffffffffff000;
+    _special_pages = 0xfffffffffffff000;
+    _phys_window_page = _special_pages;
+
+    _special_pages -= 0x1000;
+    _phys_window_pt = _special_pages;
+
+    _special_pages -= 0x1000;
+    _idt_page = _special_pages;
+
+    _special_pages -= 0x1000;
+    _apic_page = _special_pages;
 }

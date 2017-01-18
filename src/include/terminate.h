@@ -7,21 +7,38 @@
 #define PANIC(MSG, ...) ({ \
     vga_set_foreground(COLOR_LIGHT_RED); \
     vga_set_background(COLOR_BLACK); \
-    dprintf(vga_ocdev, "PANIC at " __FILE__ ":%d: " MSG, \
-            __LINE__, ##__VA_ARGS__); \
+    if (vga_get_x() != 0) { \
+        vga_putc('\n'); \
+    } \
+    dprintf(vga_ocdev, "hOI!!!!!! Something has gone... tERRIBLY WRONG!!\n" \
+            "PANIC at " __FILE__ ":%d: " MSG "\n", __LINE__, ##__VA_ARGS__); \
     terminate(); \
 })
 
 #define WARNING(MSG, ...) ({ \
+    uint8_t _old_vga_color = vga_get_color(); \
     vga_set_foreground(COLOR_LIGHT_MAGENTA); \
     vga_set_background(COLOR_BLACK); \
-    dprintf(vga_ocdev, "WARNING at " __FILE__ ":%d: " MSG, \
-            __LINE__, ##__VA_ARGS__); \
+    if (vga_get_x() != 0) { \
+        vga_putc('\n'); \
+    } \
+    dprintf(vga_ocdev, "hOI!!!!!! Something has gone... wRONG!!\n" \
+            "WARNING at " __FILE__ ":%d: " MSG "\n", __LINE__, \
+            ##__VA_ARGS__); \
+    vga_set_color(_old_vga_color); \
 })
 
 #define ASSERT(EXPR) ({ \
     if (!(EXPR)) { \
-        PANIC("assertion failed: (" #EXPR ")"); \
+        vga_set_foreground(COLOR_LIGHT_RED); \
+        vga_set_background(COLOR_BLACK); \
+        if (vga_get_x() != 0) { \
+            vga_putc('\n'); \
+        } \
+        dprintf(vga_ocdev, "hOI!!!!!! Something has gone tERRIBLY WRONG!!\n" \
+                "ASSERTION FAILED at " __FILE__ ":%d: " #EXPR "\n", \
+                __LINE__); \
+        terminate(); \
     } \
 })
 

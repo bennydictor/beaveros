@@ -29,6 +29,13 @@ void add_phys_mem(void *phys_mem_start, size_t length) {
     first_free_block = phys_mem_start;
 }
 
+static void free_page(page_header_t *page) {
+    PHYS_LOOK(page);
+    PHYS_WINDOW(page_header_t)->size = 1;
+    PHYS_WINDOW(page_header_t)->next = first_free_block;
+    first_free_block = page;
+}
+
 static void *alloc_page(void) {
     if (first_free_block == NULL) {
         PANIC("no memory availible");
@@ -53,13 +60,6 @@ static void *calloc_page(void) {
     PHYS_LOOK(ret);
     memset(PHYS_WINDOW(void), 0, PAGE_SIZE);
     return ret;
-}
-
-static void free_page(page_header_t *page) {
-    PHYS_LOOK(page);
-    PHYS_WINDOW(page_header_t)->size = 1;
-    PHYS_WINDOW(page_header_t)->next = first_free_block;
-    first_free_block = page;
 }
 
 static void unmap_page(void *virt) {
@@ -146,13 +146,13 @@ void map_page(void *virt, void *phys, uint64_t flags) {
             phys = (void *) (*pte & PAGE_ADDR_BITS);
         } else {
             phys = alloc_page();
-            PHYS_LOOK(pt);
         }
     } else {
         if ((phys != (void *) (*pte & PAGE_ADDR_BITS)) && (*pte & PAGE_F_BIT)) {
             free_page((void *) (*pte & PAGE_ADDR_BITS));
         }
     }
+    PHYS_LOOK(pt);
     *pte = flags & PT_FLAGS_MASK;
     *pte |= (uint64_t) phys;
 

@@ -137,6 +137,10 @@ void vga_set_color(uint8_t color) {
     vga_color = color;
 }
 
+uint8_t vga_get_color(void) {
+    return vga_color;
+}
+
 void vga_set_foreground(uint8_t color) {
     vga_color &= 0xf0;
     vga_color |= color;
