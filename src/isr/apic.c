@@ -1,4 +1,5 @@
 #include <isr/apic.h>
+#include <isr/idt.h>
 #include <cpu.h>
 #include <stdint.h>
 #include <terminate.h>
@@ -6,7 +7,9 @@
 #include <io/port.h>
 
 extern void *_apic_page;
-static void *apic_page = &_apic_page;
+static uint32_t *apic_page = (uint32_t *) &_apic_page;
+
+static void spurious_isr(interrupt_frame_t frame __attribute__ ((unused))) {}
 
 void apic_init(void) {
     /* check if APIC is available */
@@ -21,10 +24,48 @@ void apic_init(void) {
         PANIC("APIC is not enabled\nReboot and try again");
     }
 
+    printf("APIC registers page = %p\n", (void *) (msr & PAGE_ADDR_BITS));
+
     map_page(apic_page, (void *) (msr & PAGE_ADDR_BITS),
             PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
 
     /* Disable PIC 8259 */
-    outb(PORT_PIC8259_MASTER_COMMAND, 0xff);
-    outb(PORT_PIC8259_SLAVE_COMMAND, 0xff);
+    for (uint8_t pic_irq = 0; pic_irq < 8; ++pic_irq) {
+        uint16_t val = inb(PORT_PIC8259_MASTER_DATA);
+        val |= 1 << pic_irq;
+        outb(PORT_PIC8259_MASTER_DATA, val);
+    }
+    for (uint8_t pic_irq = 8; pic_irq < 16; ++pic_irq) {
+        uint16_t val = inb(PORT_PIC8259_SLAVE_DATA);
+        val |= 1 << pic_irq;
+        outb(PORT_PIC8259_SLAVE_DATA, val);
+    }
+
+    /* Reset APIC */
+    wrapic(APIC_DFR_REGISTER, APIC_DFR_CLUSTER);
+    uint32_t ldr = rdapic(APIC_LDR_REGISTER);
+    ldr &= 0x00ffffff;
+    ldr |= 0x01;
+    wrapic(APIC_LDR_REGISTER, ldr);
+    wrapic(APIC_TMR_LVT_REGISTER, APIC_TMR_LVT_DISABLE);
+    wrapic(APIC_PERF_LVT_REGISTER, APIC_PERF_LVT_NMI);
+    wrapic(APIC_LINT0_LVT_REGISTER, APIC_LINT0_LVT_DISABLE);
+    wrapic(APIC_LINT1_LVT_REGISTER, APIC_LINT1_LVT_DISABLE);
+    wrapic(APIC_TPR_REGISTER, 0);
+
+    /* Enable APIC */
+    wrmsr(APIC_BASE_MSR, rdmsr(APIC_BASE_MSR) | APIC_BASE_ENABLE_BIT);
+
+    /* Set spurious-interrupt handler */
+    install_isr(spurious_isr, SPURIOUS_VECTOR);
+    wrapic(APIC_SPURIOUS_LVT_REGISTER,
+            SPURIOUS_VECTOR | APIC_SPURIOUS_LVT_ENABLE);
+}
+
+void wrapic(uint16_t number, uint32_t value) {
+    apic_page[number] = value;
+}
+
+uint32_t rdapic(uint16_t number) {
+    return apic_page[number];
 }

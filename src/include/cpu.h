@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-#define APIC_BASE_MSR           0x1b
-#define APIC_BASE_ENABLE_BIT    (1 << 11)
-
 #define CPUID_1_EDX_APIC_BIT (1 << 9)
 
 uint64_t rdcr0(void);
