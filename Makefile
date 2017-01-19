@@ -63,6 +63,7 @@ CFLAGS                  += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_CFLAGS))
 ASFLAGS                 += $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_ASFLAGS))
 ASFLAGS                 += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_ASFLAGS))
 
+QEMUFLAGS_BASE          := $(QEMUFLAGS)
 QEMUFLAGS               += $(foreach f,$(ENABLED_FLAGS),$(WITH_$(f)_QEMUFLAGS))
 QEMUFLAGS               += $(foreach f,$(DISABLED_FLAGS),$(WITHOUT_$(f)_QEMUFLAGS))
 
@@ -193,9 +194,16 @@ else
 	@$(QEMU) $(QEMUFLAGS)
 endif
 
+run-debug:
+ifdef VERBOSE
+	$(QEMU) $(QEMUFLAGS_BASE) $(WITH_DEBUG_QEMUFLAGS)
+else
+	@$(QEMU) $(QEMUFLAGS) $(WITH_DEBUG_QEMUFLAGS)
+endif
+
 todo-list:
 	@find src -type f | xargs cat | fgrep $$'TODO\nFIXME' | sed -E -e 's/.*(TODO|FIXME):/\1:/' -e 's/\s*\*\///'
 
-.PHONY: all clean clean-deps dist run todo-list
+.PHONY: all clean clean-deps dist run run-debug todo-list
 
 -include $(DEPS)
