@@ -6,8 +6,8 @@
 #define APIC_BASE_MSR               0x1b
 #define APIC_BASE_ENABLE_BIT        (1 << 11)
 
-#define TMR_VECTOR                  32
-#define SPURIOUS_VECTOR             39
+#define TMR_VECTOR                  0x20
+#define SPURIOUS_VECTOR             0x27
 
 #define APIC_TPR_REGISTER           0x080
 

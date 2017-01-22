@@ -7,9 +7,11 @@
 #include <io/port.h>
 
 extern void *_apic_page;
-static uint32_t *apic_page = (uint32_t *) &_apic_page;
+static uint32_t *const apic_page = (uint32_t *) &_apic_page;
 
-static void spurious_isr(interrupt_frame_t frame __attribute__ ((unused))) {}
+static void spurious_isr(interrupt_frame_t frame __attribute__ ((unused))) {
+    printf("spurious!!\n");
+}
 
 void apic_init(void) {
     /* check if APIC is available */
@@ -24,9 +26,9 @@ void apic_init(void) {
         PANIC("APIC is not enabled\nReboot and try again");
     }
 
-    printf("APIC registers page = %p\n", (void *) (msr & PAGE_ADDR_BITS));
-
-    map_page(apic_page, (void *) (msr & PAGE_ADDR_BITS),
+    uint64_t apic_phys_page = msr & PAGE_ADDR_BITS;
+    printf("Mapping %pp to %pv\n", (void *) apic_phys_page, apic_page);
+    map_page(apic_page, (void *) apic_phys_page,
             PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
 
     /* Disable PIC 8259 */
@@ -54,7 +56,7 @@ void apic_init(void) {
     wrapic(APIC_TPR_REGISTER, 0);
 
     /* Enable APIC */
-    wrmsr(APIC_BASE_MSR, rdmsr(APIC_BASE_MSR) | APIC_BASE_ENABLE_BIT);
+    wrmsr(APIC_BASE_MSR, msr);
 
     /* Set spurious-interrupt handler */
     install_isr(spurious_isr, SPURIOUS_VECTOR);

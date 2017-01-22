@@ -12,8 +12,8 @@ typedef struct {
 
 extern void *_phys_window_page;
 extern void *_phys_window_pt;
-void *phys_window_page = &_phys_window_page;
-page_table_entry_t *phys_window_pt = (void *) &_phys_window_pt;
+void *const phys_window_page = &_phys_window_page;
+page_table_entry_t *const phys_window_pt = (void *) &_phys_window_pt;
 
 static page_table_entry_t *pml4;
 static page_header_t *first_free_block;
