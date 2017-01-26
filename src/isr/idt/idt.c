@@ -1,4 +1,4 @@
-#include <isr.h>
+#include <isr/idt.h>
 #include <mapper.h>
 #include <string.h>
 #include <cpu.h>
@@ -63,7 +63,7 @@ void _default_c_isr(interrupt_frame_t frame) {
     case GP_VECTOR:
         printf("(%#.4x)\n", frame.error);
         for (int i = 0; i < 3; ++i) {
-            if (frame.rflags & (1 << i)) {
+            if (frame.error & (1 << i)) {
                 printf(selector_error_mnemonics[i]);
             }
         }
@@ -72,7 +72,7 @@ void _default_c_isr(interrupt_frame_t frame) {
     case PF_VECTOR:
         printf("(%#.4x)\n", frame.error);
         for (int i = 0; i < 5; ++i) {
-            if (frame.rflags & (1 << i)) {
+            if (frame.error & (1 << i)) {
                 printf(pf_error_mnemonics[i]);
             }
         }
@@ -91,6 +91,8 @@ void _default_c_isr(interrupt_frame_t frame) {
         }
     }
     printf("\niopl     = %ld\n", (frame.rflags >> 12) & 0x3);
+
+    terminate();
 }
 
 static void install_asm_isr(isr_t isr, uint8_t vector) {

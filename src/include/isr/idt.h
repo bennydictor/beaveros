@@ -1,5 +1,5 @@
-#ifndef BEAVER_INTERRUPTS_H
-#define BEAVER_INTERRUPTS_H
+#ifndef BEAVER_ISR_IDT_H
+#define BEAVER_ISR_IDT_H
 
 #include <stdint.h>
 
@@ -42,4 +42,4 @@ typedef void (*isr_t) (interrupt_frame_t);
 void isr_init(void);
 void install_isr(isr_t isr, uint8_t vector);
 
-#endif
+#endif /* BEAVER_ISR_IDT_H */

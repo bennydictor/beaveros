@@ -5,6 +5,15 @@
 
 terminate:
     cli
-.hlt:
+.terminate_hlt:
     hlt
-    jmp     .hlt
+    jmp     .terminate_hlt
+
+.globl      intloop
+.type       intloop,    @function
+
+intloop:
+    sti
+.intloop_hlt:
+    hlt
+    jmp     .intloop_hlt

@@ -35,6 +35,7 @@ uint16_t vga_get_y(void);
 uint16_t vga_get_width(void);
 uint16_t vga_get_height(void);
 
+uint8_t vga_get_color(void);
 void vga_set_color(uint8_t);
 void vga_set_foreground(uint8_t);
 void vga_set_background(uint8_t);

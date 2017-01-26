@@ -133,10 +133,10 @@ static printf_format_specifier_t parse_format_specifier(const char
     ans.specifier = *format++;
 
     if (ans.specifier == 'p') {
-        ans.flags = FLAG_SHARP;
+        ans.flags |= FLAG_PRECISION_SPECIFIED;
         ans.width = 0;
-        ans.precision = sizeof(void *) / 8;
-        ans.length = LENGTH_ll;
+        ans.precision = sizeof(void *) * 2;
+        ans.length = LENGTH_l;
         ans.specifier = 'x';
     }
 

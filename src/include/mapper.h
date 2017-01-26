@@ -2,6 +2,7 @@
 #define BEAVER_MAPPER_H
 
 #include <stdint.h>
+#include <terminate.h>
 
 #define PAGE_P_BIT      (1ULL << 0)
 #define PAGE_RW_BIT     (1ULL << 1)
@@ -44,8 +45,8 @@ typedef uint64_t page_table_entry_t;
     asm volatile ("invlpg (%0)"::"r"(phys_window_page)); \
 })
 
-extern void *phys_window_page;
-extern page_table_entry_t *phys_window_pt;
+extern void *const phys_window_page;
+extern page_table_entry_t *const phys_window_pt;
 
 void mapper_init(void);
 void add_phys_mem(void *phys_mem_start, size_t length);
