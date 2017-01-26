@@ -9,6 +9,10 @@
 #include <isr/idt.h>
 #include <isr/apic.h>
 #include <isr/timer.h>
+#include <debug.h>
+
+extern void *_first_mb;
+static void *first_mb = &_first_mb;
 
 __attribute__ ((force_align_arg_pointer))
 __attribute__ ((noreturn))
@@ -27,6 +31,7 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
 
     mapper_init();
 
+    /* TODO: recover unused memory */
     while (tag->type != MULTIBOOT2_END_TAG) {
         if (tag->type == MULTIBOOT2_MEMORY_MAP_TAG) {
             multiboot2_memory_map_t *memory_map =
@@ -63,6 +68,19 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
     }
 
     isr_init();
+
+    for (uintptr_t pg = 0x0; pg < 0x100000; pg += 0x1000) {
+        map_page(first_mb + pg, (void *) pg, PAGE_P_BIT |
+			PAGE_RW_BIT | PAGE_G_BIT);
+    }
+    for (uintptr_t pg = 0x0; pg < used_mem; pg += 0x1000) {
+        map_page((void *) pg, NULL, 0);
+    }
+    DEBUG_BREAKPOINT;
+    vga_init(first_mb + 0xb8000);
+
+    printf("Unmapped identity\n");
+
     apic_init();
     timer_init();
 

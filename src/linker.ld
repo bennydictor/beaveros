@@ -40,4 +40,7 @@ SECTIONS {
 
     _special_pages -= 0x1000;
     _apic_page = _special_pages;
+
+    _special_pages -= 0x100000;
+    _first_mb = _special_pages;
 }

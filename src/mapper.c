@@ -72,21 +72,24 @@ static void unmap_page(void *virt) {
     }
     page_table_entry_t *pdp = (void *) (*pml4e & PAGE_ADDR_BITS);
     PHYS_LOOK(pdp);
-    page_table_entry_t *pdpe = pdp + BITS(virt, 30, 39);
+    page_table_entry_t *pdpe = PHYS_WINDOW(page_table_entry_t) +
+            BITS(virt, 30, 39);
 
     if (!(*pdpe & PAGE_P_BIT)) {
         return;
     }
     page_table_entry_t *pd = (void *) (*pdpe & PAGE_ADDR_BITS);
     PHYS_LOOK(pd);
-    page_table_entry_t *pde = pd + BITS(virt, 21, 30);
+    page_table_entry_t *pde = PHYS_WINDOW(page_table_entry_t) +
+            BITS(virt, 21, 30);
 
     if (!(*pde & PAGE_P_BIT)) {
         return;
     }
     page_table_entry_t *pt = (void *) (*pde & PAGE_ADDR_BITS);
     PHYS_LOOK(pt);
-    page_table_entry_t *pte = pt + BITS(virt, 12, 21);
+    page_table_entry_t *pte = PHYS_WINDOW(page_table_entry_t) +
+            BITS(virt, 12, 21);
 
     if (*pte & PAGE_P_BIT) {
         if (*pte & PAGE_F_BIT) {
