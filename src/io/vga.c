@@ -1,7 +1,7 @@
 #include <io/vga.h>
 #include <io/port.h>
 
-static uint16_t *vga_buffer;
+uint16_t *vga_buffer;
 static uint16_t vga_width;
 static uint16_t vga_height;
 static uint16_t vga_x;

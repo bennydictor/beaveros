@@ -22,6 +22,8 @@
 #define COLOR_YELLOW        14
 #define COLOR_WHITE         15
 
+extern uint16_t *vga_buffer;
+
 void vga_init(void *vga_buffer);
 
 void vga_putc(char);
