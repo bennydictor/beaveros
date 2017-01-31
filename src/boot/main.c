@@ -76,7 +76,7 @@ __attribute__ ((noreturn))
 int main(uint64_t used_mem) {
     for (uintptr_t pg = 0x0; pg < 0x100000; pg += 0x1000) {
         map_page(first_mb + pg, (void *) pg, PAGE_P_BIT |
-			PAGE_RW_BIT | PAGE_G_BIT);
+                        PAGE_RW_BIT | PAGE_G_BIT);
     }
     for (uintptr_t pg = 0x0; pg < used_mem; pg += 0x1000) {
         map_page((void *) pg, NULL, 0);
@@ -90,6 +90,5 @@ int main(uint64_t used_mem) {
     isr_init();
     apic_init();
     timer_init();
-
     intloop();
 }

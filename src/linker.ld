@@ -16,7 +16,7 @@ SECTIONS {
         *(.rodata*)
     }
 
-	.bss : ALIGN(0x1000) {
+        .bss : ALIGN(0x1000) {
         *(COMMON)
         *(.bss*)
     }
@@ -25,9 +25,12 @@ SECTIONS {
         *(.eh_frame*)
     }
 
-	.comment : ALIGN(0x1000) {
+        .comment : ALIGN(0x1000) {
         *(.note*) *(.comment*)
     }
+    . = ALIGN(0x1000);
+    _prog_break_begin = .;
+
 
     _special_pages = 0xfffffffffffff000;
     _phys_window_page = _special_pages;
@@ -54,4 +57,6 @@ SECTIONS {
 
     _special_pages -= 0x100000;
     _first_mb = _special_pages;
+
+    _prog_break_end = _special_pages;
 }
