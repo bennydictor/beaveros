@@ -7,12 +7,12 @@
 typedef struct {
     uint16_t offset_1;
     uint16_t seg_sel;
-    uint8_t ist:3;
-    uint8_t mbz_1:5;
-    uint8_t type:4;
-    uint8_t mbz_2:1;
-    uint8_t dpl:2;
-    uint8_t present:1;
+    uint8_t ist : 3;
+    uint8_t mbz_1 : 5;
+    uint8_t type : 4;
+    uint8_t mbz_2 : 1;
+    uint8_t dpl : 2;
+    uint8_t present : 1;
     uint16_t offset_2;
     uint32_t offset_3;
     uint32_t mbz_3;
@@ -25,9 +25,12 @@ struct {
 
 extern isr_t _isr_table[256];
 extern isr_t _c_isr_table[256];
-extern void *_idt_page;
 
+extern void *_idt_page;
 static interrupt_descriptor_t *idt_page = (void *) &_idt_page;
+
+extern void *_isr_stack_bottom;
+static void *isr_stack_bottom = &_isr_stack_bottom;
 
 static const char *interrupt_mnemonic[20] = {
     "DE", "DB", "NMI", "BP", "OF", "BR", "UD", "NM", "DF", "", "TS", "NP",
@@ -110,6 +113,7 @@ static void install_asm_isr(isr_t isr, uint8_t vector) {
 void isr_init(void) {
     ASSERT(sizeof(interrupt_descriptor_t) == 16);
     map_page(idt_page, MAP_ANON, PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
+    map_page(isr_stack_bottom, MAP_ANON, PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
     memset(idt_page, 0, PAGE_SIZE);
     idtr.limit = PAGE_SIZE - 1;
     idtr.offset = (uint64_t) idt_page;

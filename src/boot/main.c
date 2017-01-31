@@ -6,13 +6,18 @@
 #include <terminate.h>
 #include <math.h>
 #include <mapper.h>
+#include <gdt.h>
 #include <isr/idt.h>
 #include <isr/apic.h>
 #include <isr/timer.h>
 
-__attribute__ ((force_align_arg_pointer))
-__attribute__ ((noreturn))
-void kernel_main(void *multiboot, uint64_t used_mem) {
+extern void *_first_mb;
+static void *first_mb = &_first_mb;
+
+extern void *_kernel_stack_bottom;
+static void *kernel_stack_bottom = &_kernel_stack_bottom;
+
+void early_main(void *multiboot, uint64_t used_mem) {
     vga_init((void *) 0xb8000);
     vga_set_foreground(COLOR_LIGHT_GREEN);
     std_ocdev = vga_ocdev;
@@ -27,6 +32,7 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
 
     mapper_init();
 
+    /* TODO: recover unused memory */
     while (tag->type != MULTIBOOT2_END_TAG) {
         if (tag->type == MULTIBOOT2_MEMORY_MAP_TAG) {
             multiboot2_memory_map_t *memory_map =
@@ -62,6 +68,25 @@ void kernel_main(void *multiboot, uint64_t used_mem) {
         tag = multiboot2_next_tag(tag);
     }
 
+    map_page(kernel_stack_bottom, MAP_ANON,
+            PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
+}
+
+__attribute__ ((noreturn))
+int main(uint64_t used_mem) {
+    for (uintptr_t pg = 0x0; pg < 0x100000; pg += 0x1000) {
+        map_page(first_mb + pg, (void *) pg, PAGE_P_BIT |
+			PAGE_RW_BIT | PAGE_G_BIT);
+    }
+    for (uintptr_t pg = 0x0; pg < used_mem; pg += 0x1000) {
+        map_page((void *) pg, NULL, 0);
+    }
+
+    vga_buffer = first_mb + 0xb8000;
+
+    printf("Unmapped identity\n");
+
+    gdt_init();
     isr_init();
     apic_init();
     timer_init();

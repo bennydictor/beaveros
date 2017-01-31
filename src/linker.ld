@@ -1,5 +1,5 @@
 OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
-ENTRY(kernel_main)
+ENTRY(start)
 
 SECTIONS {
     . = 0xffffffff80000000; /* -2G */
@@ -39,5 +39,19 @@ SECTIONS {
     _idt_page = _special_pages;
 
     _special_pages -= 0x1000;
+    _gdt_page = _special_pages;
+
+    _special_pages -= 0x1000;
     _apic_page = _special_pages;
+
+    _kernel_stack_top = _special_pages;
+    _special_pages -= 0x1000;
+    _kernel_stack_bottom = _special_pages;
+
+    _isr_stack_top = _special_pages;
+    _special_pages -= 0x1000;
+    _isr_stack_bottom = _special_pages;
+
+    _special_pages -= 0x100000;
+    _first_mb = _special_pages;
 }
