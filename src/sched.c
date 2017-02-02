@@ -50,11 +50,21 @@ static queue_t task_queue;
 
 void task_switch_isr(interrupt_frame_t *i) {
     current_task->saved_state = *i;
-    current_task->state = TASK_STATE_IN_QUEUE;
+    if (current_task->state == TASK_STATE_RUNNING) {
+        current_task->state = TASK_STATE_IN_QUEUE;
+    }
     enqueue(&task_queue, current_task);
-    current_task = dequeue(&task_queue);
-    if (!current_task) {
-        PANIC("NOTHING TO DO"); /* FIXME */
+    for (;;) {
+        current_task = dequeue(&task_queue);
+        if (!current_task) {
+            PANIC("NOTHING TO DO"); /* FIXME */
+        }
+        if (current_task->state == TASK_STATE_IN_QUEUE) {
+            break;
+        }
+        if (current_task->state == TASK_STATE_FROZEN) {
+            enqueue(&task_queue, current_task);
+        }
     }
     current_task->state = TASK_STATE_RUNNING;
     *i = current_task->saved_state;
@@ -73,7 +83,6 @@ void main_loop() {
     install_isr(task_switch_isr, 0x42);
     task_t *t = start_task(NULL, NULL, 0);
     current_task = t;
-    for (;;) yield();
     terminate_task(t);
     __builtin_unreachable();
 }
@@ -92,7 +101,7 @@ task_t *start_task(void(*start)(void*), void *context, int ring) {
     task->saved_state.cs = 0x08;
     task->saved_state.ss = 0x10;
     enqueue(&task_queue, task);
-
+    task->state = TASK_STATE_IN_QUEUE;
     return task;
 }
 

@@ -1,6 +1,7 @@
 #define TASK_STATE_RUNNING 0
 #define TASK_STATE_IN_QUEUE 1
 #define TASK_STATE_TERMINATED 2
+#define TASK_STATE_FROZEN 3
 struct __task;
 typedef struct __task task_t;
 void terminate_task(task_t *task);
