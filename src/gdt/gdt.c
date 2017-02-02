@@ -18,7 +18,7 @@ typedef struct {
     uint8_t priv : 2;
     uint8_t p : 1;
     uint8_t limit_2 : 4;
-    uint8_t mbz : 1;
+    uint8_t avl : 1;
     uint8_t l : 1;
     uint8_t sz : 1;
     uint8_t gr : 1;
@@ -58,7 +58,6 @@ typedef struct {
     uint32_t mbz_3[2];
     uint16_t mbz_4;
     uint16_t iomap_offset;
-    uint64_t iomap[4];
 } __attribute__ ((packed)) tss_t;
 tss_t *tss;
 
@@ -81,12 +80,14 @@ void install_segment_descriptor(uint8_t code, uint8_t priv) {
     descs->mbo = 1;
     descs->priv = priv;
     descs->p = 1;
-    descs->mbz = 0;
+    descs->avl = 0;
     descs->l = code;
     descs->sz = code ^ 1;
     descs->gr = 1;
     ++descs;
 }
+
+void _lgdt(void *);
 
 void gdt_init(void) {
     map_page(&_gdt_page, MAP_ANON, PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
@@ -98,7 +99,7 @@ void gdt_init(void) {
     install_segment_descriptor(0, 3);
 
     tss_desc = (void *) descs;
-    tss = (void *) tss_desc + sizeof(tss_descriptor_t);
+    tss = (void *) (tss_desc + 1);
 
     tss_desc->limit_1 = sizeof(tss_t) & 0xffff;
     tss_desc->limit_2 = (sizeof(tss_t) & 0xf0000) >> 16;
@@ -119,7 +120,6 @@ void gdt_init(void) {
     memset(&tss->mbz_2, 0, sizeof(tss->mbz_2));
     memset(&tss->mbz_3, 0, sizeof(tss->mbz_3));
     tss->mbz_4 = 0;
-    memset(&tss->iomap, 0, sizeof(tss->iomap));
     for (int i = 0; i < 3; ++i) {
         tss->rsp[i].lower = (uint64_t) &_isr_stack_bottom & 0xffffffff;
         tss->rsp[i].upper = ((uint64_t) &_isr_stack_bottom &
@@ -130,14 +130,15 @@ void gdt_init(void) {
         tss->ist[i].upper = ((uint64_t) &_isr_stack_bottom &
                 0xffffffff00000000) >> 32;
     }
-    tss->iomap_offset = sizeof(tss_t) - sizeof(tss->iomap);
+    tss->iomap_offset = sizeof(tss_t);
 
-    ASSERT((void *) tss - (void *) &_gdt_page <= PAGE_SIZE);
+    uint64_t *iomap = (void *) (tss + 1);
+    memset(iomap, 0, 32);
+
+    ASSERT((void *) (iomap + 32) - (void *) &_gdt_page <= PAGE_SIZE);
 
     gdtr.offset = (uint64_t) &_gdt_page;
-    gdtr.limit = (void *) tss_desc + sizeof(tss_descriptor_t) -
-            (void *) &_gdt_page + 1;
+    gdtr.limit = (void *) (iomap + 32) - (void *) &_gdt_page - 1;
 
-    asm volatile ("lgdt (%0)"::"r"(&gdtr));
-    asm volatile ("ltr %0"::"r"((uint16_t) 0x28));
+    _lgdt(&gdtr);
 }
