@@ -24,11 +24,26 @@
 #define SX_VECTOR   30
 
 typedef struct {
+    uint64_t r15;
+    uint64_t r14;
+    uint64_t r13;
+    uint64_t r12;
+    uint64_t r11;
+    uint64_t r10;
+    uint64_t r9;
+    uint64_t r8;
+    uint64_t rbp;
+    uint64_t rsi;
+    uint64_t rdi;
+    uint64_t rdx;
+    uint64_t rcx;
+    uint64_t rbx;
+    uint64_t rax;
     uint32_t error;
     uint32_t vector;
     uint64_t rip;
     uint16_t cs;
-    uint16_t ing_1;
+    uint16_t ign_1;
     uint32_t ign_2;
     uint64_t rflags;
     uint64_t rsp;

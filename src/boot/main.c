@@ -72,6 +72,13 @@ void early_main(void *multiboot, uint64_t used_mem) {
             PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
 }
 
+void test_task(char c) {
+    for (;;) {
+        printf("%c\n", c);
+        yield();
+    }
+}
+
 __attribute__ ((noreturn))
 int main(uint64_t used_mem) {
     for (uintptr_t pg = 0x0; pg < 0x100000; pg += 0x1000) {
@@ -90,5 +97,8 @@ int main(uint64_t used_mem) {
     isr_init();
     apic_init();
     timer_init();
-    intloop();
+
+    start_task(test_task, 'a', 0);
+    start_task(test_task, 'b', 0);
+    main_loop();
 }

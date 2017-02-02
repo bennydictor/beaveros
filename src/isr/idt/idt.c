@@ -51,7 +51,8 @@ static const char *pf_error_mnemonics[5] = {
 };
 
 __attribute__ ((force_align_arg_pointer))
-void _default_c_isr(interrupt_frame_t frame) {
+void _default_c_isr(interrupt_frame_t *frame_ptr) {
+    interrupt_frame_t frame = *frame_ptr;
     printf("hOI!!!!!! I'm dEFAuLT iSR!!\n");
     printf("vector   = %#.2x", frame.vector);
     if (frame.vector < 20) {
@@ -94,7 +95,16 @@ void _default_c_isr(interrupt_frame_t frame) {
         }
     }
     printf("\niopl     = %ld\n", (frame.rflags >> 12) & 0x3);
-
+    printf("rax = %#.16lx, rbx = %#.16lx, rcx = %#.16lx\n",
+           frame.rax, frame.rbx, frame.rcx);
+    printf("rdx = %#.16lx, rdi = %#.16lx, rsi = %#.16lx\n",
+           frame.rdx, frame.rdi, frame.rsi);
+    printf("rbp = %#.16lx, r8  = %#.16lx, r9  = %#.16lx\n",
+           frame.rbp, frame.r8, frame.r9);
+    printf("r10 = %#.16lx, r11 = %#.16lx, r12 = %#.16lx\n",
+           frame.r10, frame.r11, frame.r12);
+    printf("r13 = %#.16lx, r14 = %#.16lx, r15 = %#.16lx\n",
+           frame.r13, frame.r14, frame.r15);
     terminate();
 }
 

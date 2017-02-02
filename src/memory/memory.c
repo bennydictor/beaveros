@@ -20,7 +20,7 @@ void *sbrk(ptrdiff_t difference) {
         }
     } else {
         for (; prog_break > new_break; prog_break -= 4096) {
-            map_page(prog_break, NULL, 0);
+            map_page(prog_break - 4096, NULL, 0);
         }
     }
     return prev_break;

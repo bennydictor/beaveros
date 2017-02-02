@@ -175,7 +175,8 @@ endif
 
 clean-deps:
 	@find .bmake -type f -regex '.*\.d' | xargs rm -f
-
+install: all
+	@cp beaveros.iso /media/sf_Downloads/
 dist: clean
 ifdef VERBOSE
 	tar -cvf $(DIST).tar --exclude $(DIST).tar --exclude-vcs --exclude-vcs-ignores .
@@ -204,6 +205,6 @@ endif
 todo-list:
 	@find src -type f | xargs cat | fgrep $$'TODO\nFIXME' | sed -E -e 's/.*(TODO|FIXME):/\1:/' -e 's/\s*\*\///'
 
-.PHONY: all clean clean-deps dist run run-debug todo-list
+.PHONY: all clean clean-deps install dist run run-debug todo-list 
 
 -include $(DEPS)
