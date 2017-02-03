@@ -12,6 +12,7 @@ __attribute__((noreturn))
 void main_loop();
 task_t *start_task(void(*start)(void*), void *context, int ring);
 void yield();
+task_t *get_current_task();
 #define PLS ((processor_local_state_t*)gsbase())
 
 #endif /* BEAVER_SCHED_H */

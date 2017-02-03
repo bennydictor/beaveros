@@ -28,6 +28,9 @@ static uint32_t extended_state_size;
 static uint64_t enabled_extended_states;
 
 static queue_t task_queue;
+task_t *get_current_task() {
+    return PLS->current_task;
+}
 
 void task_switch_isr(interrupt_frame_t *i) {
     if (extended_state_save_mode == SAVE_MODE_FXSAVE_LAZY) {

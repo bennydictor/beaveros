@@ -82,7 +82,7 @@ void test_task(int c) {
         yield();
     }
     printf("%d:%x\n", c, (int)a);
-    while(1) yield();
+    terminate_task(get_current_task());
 }
 
 __attribute__ ((noreturn))
