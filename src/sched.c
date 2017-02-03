@@ -3,7 +3,9 @@
 #include <malloc.h>
 #include <mapper.h>
 #include <sched.h>
+#include <cpu.h>
 
+#define PLS ((processor_local_state_t*)gsbase())
 
 struct __task {
     interrupt_frame_t saved_state;
@@ -11,7 +13,10 @@ struct __task {
     int state;
 };
 
-static task_t *current_task;
+typedef struct __processor_local_state {
+    struct __processor_local_state *self;
+    task_t *current_task;
+} processor_local_state_t;
 
 typedef struct {
     void *head;
@@ -49,30 +54,30 @@ void *dequeue(queue_t *q) {
 static queue_t task_queue;
 
 void task_switch_isr(interrupt_frame_t *i) {
-    current_task->saved_state = *i;
-    if (current_task->state == TASK_STATE_RUNNING) {
-        current_task->state = TASK_STATE_IN_QUEUE;
+    PLS->current_task->saved_state = *i;
+    if (PLS->current_task->state == TASK_STATE_RUNNING) {
+        PLS->current_task->state = TASK_STATE_IN_QUEUE;
     }
-    enqueue(&task_queue, current_task);
+    enqueue(&task_queue, PLS->current_task);
     for (;;) {
-        current_task = dequeue(&task_queue);
-        if (!current_task) {
+        PLS->current_task = dequeue(&task_queue);
+        if (!PLS->current_task) {
             PANIC("NOTHING TO DO"); /* FIXME */
         }
-        if (current_task->state == TASK_STATE_IN_QUEUE) {
+        if (PLS->current_task->state == TASK_STATE_IN_QUEUE) {
             break;
         }
-        if (current_task->state == TASK_STATE_FROZEN) {
-            enqueue(&task_queue, current_task);
+        if (PLS->current_task->state == TASK_STATE_FROZEN) {
+            enqueue(&task_queue, PLS->current_task);
         }
     }
-    current_task->state = TASK_STATE_RUNNING;
-    *i = current_task->saved_state;
+    PLS->current_task->state = TASK_STATE_RUNNING;
+    *i = PLS->current_task->saved_state;
 }
 
 void terminate_task(task_t *task) {
     task->state = TASK_STATE_TERMINATED;
-    if (task == current_task) {
+    if (task == PLS->current_task) {
         yield();
         __builtin_unreachable();
     }
@@ -80,9 +85,12 @@ void terminate_task(task_t *task) {
 
 __attribute__((noreturn))
 void main_loop() {
+    processor_local_state_t *pls = calloc(sizeof(processor_local_state_t), 1);
+    pls->self = pls;
+    wrmsr(IA32_GS_BASE, (uint64_t)pls);
     install_isr(task_switch_isr, 0x42);
     task_t *t = start_task(NULL, NULL, 0);
-    current_task = t;
+    PLS->current_task = t;
     terminate_task(t);
     __builtin_unreachable();
 }
@@ -92,8 +100,7 @@ task_t *start_task(void(*start)(void*), void *context, int ring) {
     if (ring) {
         PANIC("Not yet"); /* FIXME */
     }
-    task_t *task = malloc(sizeof(task_t));
-    memset(task, 0, sizeof(task_t));
+    task_t *task = calloc(sizeof(task_t), 1);
     task->stack = malloc(PAGE_SIZE);
     task->saved_state.rsp = (uint64_t) task->stack + PAGE_SIZE;
     task->saved_state.rdi = (uint64_t) context;

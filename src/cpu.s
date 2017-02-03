@@ -41,6 +41,20 @@ wrmsr:
     wrmsr
     ret
 
+.globl      gsbase
+.type       gsbase,      @function
+gsbase:
+    mov     %gs:0x0,    %rax
+    ret
+
+.globl      fsbase
+.type       fsbase,      @function
+fsbase:
+    mov     %fs:0x0,    %rax
+    ret
+
+
+
 .globl      cpuid
 .type       cpuid,      @function
 
