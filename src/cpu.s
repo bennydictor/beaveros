@@ -41,6 +41,49 @@ wrmsr:
     wrmsr
     ret
 
+.globl      xsetbv
+.type       xsetbv,     @function
+xsetbv:
+    mov     %rdi,       %rcx
+    mov     %rsi,       %rax
+    mov     %rsi,       %rdx
+    shr     $32,        %rdx
+    xsetbv
+    ret
+
+.globl      xsave
+.type       xsave,      @function
+xsave:
+    mov     %rsi,       %rax
+    mov     %rsi,       %rdx
+    shr     $32,        %rdx
+    xsave   (%rdi)
+    ret
+
+.globl      xrstor
+.type       xrstor,     @function
+xrstor:
+    mov     %rsi,       %rax
+    mov     %rsi,       %rdx
+    shr     $32,        %rdx
+    xrstor  (%rdi)
+    ret
+
+
+.globl      fxsave
+.type       fxsave,     @function
+fxsave:
+    fxsave  (%rdi)
+    ret
+
+.globl      fxrstor
+.type       fxrstor,    @function
+fxrstor:
+    fxrstor (%rdi)
+    ret
+
+
+
 .globl      gsbase
 .type       gsbase,      @function
 gsbase:
@@ -52,7 +95,6 @@ gsbase:
 fsbase:
     mov     %fs:0x0,    %rax
     ret
-
 
 
 .globl      cpuid

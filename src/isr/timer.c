@@ -3,7 +3,7 @@
 #include <isr/apic.h>
 #include <terminate.h>
 
-static void timer_isr(interrupt_frame_t frame __attribute__ ((unused))) {
+static void timer_isr(interrupt_frame_t *frame __attribute__ ((unused))) {
     printf("hOI!!!!!! I'm tIMER!!\n");
     wrapic(APIC_EOI_REGISTER, 0);
 }

@@ -52,7 +52,7 @@ typedef struct {
     uint32_t ign_4;
 } __attribute__ ((packed)) interrupt_frame_t;
 
-typedef void (*isr_t) (interrupt_frame_t);
+typedef void (*isr_t) (interrupt_frame_t*);
 
 void isr_init(void);
 void install_isr(isr_t isr, uint8_t vector);

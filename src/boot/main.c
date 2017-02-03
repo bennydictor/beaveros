@@ -10,6 +10,7 @@
 #include <isr/idt.h>
 #include <isr/apic.h>
 #include <isr/timer.h>
+#include <sched.h>
 
 extern void *_first_mb;
 static void *first_mb = &_first_mb;
@@ -72,11 +73,16 @@ void early_main(void *multiboot, uint64_t used_mem) {
             PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
 }
 
-void test_task(char c) {
-    for (;;) {
-        printf("%c\n", c);
+
+__attribute__((target("sse")))
+void test_task(int c) {
+    float a = 0.0;
+    for (int i = 0; i < 100; i++) {
+        a += 10 * c;
         yield();
     }
+    printf("%d:%x\n", c, (int)a);
+    while(1) yield();
 }
 
 __attribute__ ((noreturn))
@@ -98,7 +104,7 @@ int main(uint64_t used_mem) {
     apic_init();
     timer_init();
 
-    start_task(test_task, 'a', 0);
-    start_task(test_task, 'b', 0);
+    start_task(test_task, 1, 0);
+    start_task(test_task, 2, 0);
     main_loop();
 }
