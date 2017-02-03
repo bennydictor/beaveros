@@ -5,6 +5,8 @@
 #include <io/wait.h>
 
 typedef uint64_t spinlock_t;
+struct __mutex;
+typedef struct __mutex mutex_t;
 
 __attribute__((always_inline))
 inline void spinlock_lock(spinlock_t *lock) {

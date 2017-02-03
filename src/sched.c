@@ -1,4 +1,3 @@
-#include <isr/idt.h>
 #include <string.h>
 #include <malloc.h>
 #include <mapper.h>
@@ -6,12 +5,6 @@
 #include <cpu.h>
 #include <queue.h>
 
-struct __task {
-    interrupt_frame_t saved_state;
-    void *stack;
-    int state;
-    void *processor_extended_state;
-};
 
 typedef struct __processor_local_state {
     struct __processor_local_state *self;
