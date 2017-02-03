@@ -1,3 +1,6 @@
+#ifndef BEAVER_SCHED_H
+#define BEAVER_SCHED_H
+
 #define TASK_STATE_RUNNING 0
 #define TASK_STATE_IN_QUEUE 1
 #define TASK_STATE_TERMINATED 2
@@ -9,3 +12,6 @@ __attribute__((noreturn))
 void main_loop();
 task_t *start_task(void(*start)(void*), void *context, int ring);
 void yield();
+#define PLS ((processor_local_state_t*)gsbase())
+
+#endif /* BEAVER_SCHED_H */
