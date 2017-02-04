@@ -4,6 +4,7 @@
 #include <sched.h>
 #include <cpu.h>
 #include <queue.h>
+#include <isr/apic.h>
 
 
 typedef struct __processor_local_state {
@@ -15,6 +16,8 @@ typedef struct __processor_local_state {
 #define SAVE_MODE_FXSAVE_LAZY 0
 #define SAVE_MODE_XSAVE_EAGER 1
 #define SAVE_MODE_XSAVEOPT_EAGER 2
+#define BASE_TIME_QUANTUM 500
+
 
 static int extended_state_save_mode;
 static uint32_t extended_state_size;
@@ -53,6 +56,13 @@ void task_switch_isr(interrupt_frame_t *i) {
     if (extended_state_save_mode == SAVE_MODE_XSAVE_EAGER) {
         xrstor(PLS->current_task->processor_extended_state, enabled_extended_states);
     }
+    wrapic(APIC_TMR_INITCNT_REGISTER,
+           BASE_TIME_QUANTUM * (20 - PLS->current_task->nice));
+}
+
+void apic_timer_fired_isr(interrupt_frame_t *i) {
+    task_switch_isr(i);
+    wrapic(APIC_EOI_REGISTER, 0);
 }
 
 void terminate_task(task_t *task) {
@@ -102,6 +112,10 @@ void main_loop() {
     wrmsr(IA32_GS_BASE, (uint64_t)pls);
     install_isr(save_extended_state_isr, NM_VECTOR);
     install_isr(task_switch_isr, 0x42);
+    install_isr(apic_timer_fired_isr, 0x43);
+    wrapic(APIC_TMR_LVT_REGISTER, 0x43);
+    wrapic(APIC_TMR_DIV_REGISTER, APIC_TMR_DIV_DIV16);
+
     task_t *t = start_task(NULL, NULL, 0);
     PLS->current_task = t;
     PLS->sse_state_owner = t;
@@ -123,6 +137,7 @@ task_t *start_task(void(*start)(void*), void *context, int ring) {
     task->saved_state.rip = (uint64_t) start;
     task->saved_state.cs = 0x08;
     task->saved_state.ss = 0x10;
+    task->saved_state.rflags = RFLAGS_INTERRUPT_FLAG;
     enqueue(&task_queue, task);
     task->state = TASK_STATE_IN_QUEUE;
     return task;

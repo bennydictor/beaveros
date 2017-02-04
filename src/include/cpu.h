@@ -13,10 +13,10 @@
 #define CR4_OSFXSR (1 << 9)
 #define CR4_OSXMMEXCPT (1 << 10)
 #define CR4_OSXSAVE (1 << 18)
+#define RFLAGS_INTERRUPT_FLAG (1 << 9)
 
 uint64_t rdcr0(void);
 void wrcr0(uint64_t);
-
 
 uint64_t rdcr2(void);
 void wrcr2(uint64_t);

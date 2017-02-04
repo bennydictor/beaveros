@@ -9,9 +9,6 @@ static void timer_isr(interrupt_frame_t *frame __attribute__ ((unused))) {
 }
 
 void timer_init(void) {
-    install_isr(timer_isr, TMR_VECTOR);
 
-    wrapic(APIC_TMR_INITCNT_REGISTER, 10000000);
-    wrapic(APIC_TMR_LVT_REGISTER, TMR_VECTOR | APIC_TMR_LVT_PERIODIC);
-    wrapic(APIC_TMR_DIV_REGISTER, APIC_TMR_DIV_DIV16);
+
 }

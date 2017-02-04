@@ -69,7 +69,6 @@ xrstor:
     xrstor  (%rdi)
     ret
 
-
 .globl      fxsave
 .type       fxsave,     @function
 fxsave:

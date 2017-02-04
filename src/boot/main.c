@@ -74,14 +74,13 @@ void early_main(void *multiboot, uint64_t used_mem) {
 }
 
 
-__attribute__((target("sse")))
 void test_task(int c) {
-    float a = 0.0;
+    int a = 0;
     for (int i = 0; i < 100; i++) {
         a += 10 * c;
-        yield();
     }
     printf("%d:%x\n", c, (int)a);
+    for(;;);
     terminate_task(get_current_task());
 }
 
@@ -104,7 +103,8 @@ int main(uint64_t used_mem) {
     apic_init();
     timer_init();
 
-    start_task(test_task, 1, 0);
-    start_task(test_task, 2, 0);
+    for(int i = 0; i < 10; i++) {
+        start_task(test_task, i, 0);
+    }
     main_loop();
 }

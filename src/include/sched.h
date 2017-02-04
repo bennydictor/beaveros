@@ -13,6 +13,7 @@ typedef struct {
     void *stack;
     int state;
     void *processor_extended_state;
+    int nice;
 } task_t;
 void terminate_task(task_t *task);
 __attribute__((noreturn))
