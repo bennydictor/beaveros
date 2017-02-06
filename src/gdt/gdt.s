@@ -18,4 +18,4 @@ _lgdt:
     pop     %rax
     push    $0x08
     push    %rax
-    ret
+    lretq
