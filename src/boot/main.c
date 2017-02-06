@@ -9,7 +9,6 @@
 #include <gdt.h>
 #include <isr/idt.h>
 #include <isr/apic.h>
-#include <isr/timer.h>
 #include <sched.h>
 
 extern void *_first_mb;
@@ -73,7 +72,6 @@ void early_main(void *multiboot, uint64_t used_mem) {
             PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
 }
 
-
 void test_task(int c) {
     int a = 0;
     for (int i = 0; i < 100; i++) {
@@ -84,7 +82,7 @@ void test_task(int c) {
     terminate_task(get_current_task());
 }
 
-__attribute__ ((noreturn))
+__attribute__((noreturn))
 int main(uint64_t used_mem) {
     for (uintptr_t pg = 0x0; pg < 0x100000; pg += 0x1000) {
         map_page(first_mb + pg, (void *) pg, PAGE_P_BIT |
@@ -101,7 +99,6 @@ int main(uint64_t used_mem) {
     gdt_init();
     isr_init();
     apic_init();
-    timer_init();
 
     for(int i = 0; i < 10; i++) {
         start_task(test_task, i, 0);

@@ -1,12 +1,10 @@
-#ifndef BEAVER_SYNC_H
-#define BEAVER_SYNC_H
+#ifndef BEAVER_SPINLOCK_H
+#define BEAVER_SPINLOCK_H
 
 #include <stdint.h>
 #include <io/wait.h>
 
 typedef uint64_t spinlock_t;
-struct __mutex;
-typedef struct __mutex mutex_t;
 
 __attribute__((always_inline))
 inline void spinlock_lock(spinlock_t *lock) {
@@ -19,4 +17,5 @@ __attribute__((always_inline))
 inline void spinlock_unlock(spinlock_t *lock) {
     __sync_lock_release(lock);
 }
-#endif /* BEAVER_SYNC_H */
+
+#endif /* BEAVER_SPINLOCK_H */

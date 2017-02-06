@@ -1,12 +1,6 @@
 #include <queue.h>
-#include <sync.h>
+#include <mutex.h>
 #include <sched.h>
-
-struct __mutex {
-    queue_t waiting_tasks;
-    spinlock_t lock;
-    uint64_t locked;
-};
 
 void mutex_lock(mutex_t *mutex) {
     while (1) {

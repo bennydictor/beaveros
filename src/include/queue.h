@@ -1,7 +1,7 @@
 #ifndef BEAVER_QUEUE_H
 #define BEAVER_QUEUE_H
 
-#include <sync.h>
+#include <spinlock.h>
 
 typedef struct {
     void *head;

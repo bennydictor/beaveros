@@ -6,24 +6,23 @@
 #include <queue.h>
 #include <isr/apic.h>
 
+#define SAVE_MODE_FXSAVE_LAZY    0
+#define SAVE_MODE_XSAVE_EAGER    1
+#define SAVE_MODE_XSAVEOPT_EAGER 2
+#define BASE_TIME_QUANTUM        500
 
-typedef struct __processor_local_state {
-    struct __processor_local_state *self;
+typedef struct processor_local_state {
+    struct processor_local_state *self;
     task_t *current_task;
     task_t *sse_state_owner;
 } processor_local_state_t;
-
-#define SAVE_MODE_FXSAVE_LAZY 0
-#define SAVE_MODE_XSAVE_EAGER 1
-#define SAVE_MODE_XSAVEOPT_EAGER 2
-#define BASE_TIME_QUANTUM 500
-
 
 static int extended_state_save_mode;
 static uint32_t extended_state_size;
 static uint64_t enabled_extended_states;
 
 static queue_t task_queue;
+
 task_t *get_current_task() {
     return PLS->current_task;
 }
@@ -39,6 +38,8 @@ void task_switch_isr(interrupt_frame_t *i) {
         PLS->current_task->state = TASK_STATE_IN_QUEUE;
     }
     enqueue(&task_queue, PLS->current_task);
+    /* FIXME: deadlock if all tasks are frozen
+     * Stop enqueuing frozen tasks, please */
     for (;;) {
         PLS->current_task = dequeue(&task_queue);
         if (!PLS->current_task) {
@@ -111,6 +112,7 @@ void main_loop() {
     pls->self = pls;
     wrmsr(IA32_GS_BASE, (uint64_t)pls);
     install_isr(save_extended_state_isr, NM_VECTOR);
+    /* TODO: tAIMER_VECTROR and YUILD_VECTOE */
     install_isr(task_switch_isr, 0x42);
     install_isr(apic_timer_fired_isr, 0x43);
     wrapic(APIC_TMR_LVT_REGISTER, 0x43);
@@ -122,7 +124,6 @@ void main_loop() {
     terminate_task(t);
     __builtin_unreachable();
 }
-
 
 task_t *start_task(void(*start)(void*), void *context, int ring) {
     if (ring) {
