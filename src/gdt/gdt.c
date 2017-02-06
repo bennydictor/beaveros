@@ -4,7 +4,7 @@
 #include <mapper.h>
 
 extern void *_gdt_page;
-extern void *_isr_stack_bottom;
+extern void *_isr_stack_top;
 
 typedef struct {
     uint16_t limit_1;
@@ -121,13 +121,13 @@ void gdt_init(void) {
     memset(&tss->mbz_3, 0, sizeof(tss->mbz_3));
     tss->mbz_4 = 0;
     for (int i = 0; i < 3; ++i) {
-        tss->rsp[i].lower = (uint64_t) &_isr_stack_bottom & 0xffffffff;
-        tss->rsp[i].upper = ((uint64_t) &_isr_stack_bottom &
+        tss->rsp[i].lower = (uint64_t) &_isr_stack_top & 0xffffffff;
+        tss->rsp[i].upper = ((uint64_t) &_isr_stack_top &
                 0xffffffff00000000) >> 32;
     }
     for (int i = 0; i < 7; ++i) {
-        tss->ist[i].lower = (uint64_t) &_isr_stack_bottom & 0xffffffff;
-        tss->ist[i].upper = ((uint64_t) &_isr_stack_bottom &
+        tss->ist[i].lower = (uint64_t) &_isr_stack_top & 0xffffffff;
+        tss->ist[i].upper = ((uint64_t) &_isr_stack_top &
                 0xffffffff00000000) >> 32;
     }
     tss->iomap_offset = sizeof(tss_t);
