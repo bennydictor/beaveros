@@ -2,7 +2,7 @@ OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64", "elf64-x86-64")
 ENTRY(start)
 
 SECTIONS {
-    . = 0xffffffff80000000; /* -2G */
+    . = 0xffffff8000000000; /* -512G */
 
     .text : ALIGN(0x1000) {
         *(.text*)
