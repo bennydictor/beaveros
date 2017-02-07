@@ -72,13 +72,16 @@ void early_main(void *multiboot, uint64_t used_mem) {
             PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
 }
 
-void test_task(int c) {
+void test_task(void *c_ptr_thingy_thing) {
+    int c = (uint64_t) c_ptr_thingy_thing;
     int a = 0;
     for (int i = 0; i < 100; i++) {
         a += 10 * c;
     }
     printf("%d:%x\n", c, (int)a);
-    for(;;);
+    for (;;) {
+        asm volatile ("hlt");
+    }
     terminate_task(get_current_task());
 }
 
@@ -100,8 +103,8 @@ int main(uint64_t used_mem) {
     isr_init();
     apic_init();
 
-    for(int i = 0; i < 10; i++) {
-        start_task(test_task, i, 0);
+    for(uint64_t i = 0; i < 10; i++) {
+        start_task(test_task, (void *) i, 0);
     }
     main_loop();
 }

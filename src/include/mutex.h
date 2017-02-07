@@ -2,7 +2,6 @@
 #define BEAVER_SYNC_H
 
 #include <stdint.h>
-#include <io/wait.h>
 
 typedef struct {
     queue_t waiting_tasks;

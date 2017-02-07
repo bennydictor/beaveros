@@ -204,6 +204,6 @@ endif
 todo-list:
 	@find src -type f | xargs cat | fgrep $$'TODO\nFIXME' | sed -E -e 's/.*(TODO|FIXME):/\1:/' -e 's/\s*\*\///'
 
-.PHONY: all clean clean-deps dist run run-debug todo-list 
+.PHONY: all clean clean-deps dist run run-debug todo-list
 
 -include $(DEPS)

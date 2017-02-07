@@ -41,7 +41,6 @@ void sift_down(min_heap_t *h, size_t item) {
     }
 }
 
-
 void sift_up(min_heap_t *h, size_t item) {
     while (h->cmp(h->data[item], h->data[item / 2]) < 0) {
         void *t = h->data[item];

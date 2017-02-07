@@ -13,11 +13,8 @@ typedef struct {
 } min_heap_t;
 
 min_heap_t *make_heap(int (*cmp)(void *, void *));
-
 void destroy_heap(min_heap_t *h);
-
 void *heap_pop(min_heap_t *h);
-
 void heap_push(min_heap_t *h, void *item);
 
 #endif /* BEAVER_HEAP_H */

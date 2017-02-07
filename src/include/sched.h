@@ -22,9 +22,9 @@ typedef struct {
 
 void terminate_task(task_t *task);
 __attribute__((noreturn))
-void main_loop();
+void main_loop(void);
 task_t *start_task(void (*start)(void*), void *context, int ring);
-void yield();
-task_t *get_current_task();
+void yield(void);
+task_t *get_current_task(void);
 
 #endif /* BEAVER_SCHED_H */

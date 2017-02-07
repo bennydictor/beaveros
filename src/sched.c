@@ -25,7 +25,6 @@ static min_heap_t* task_queue;
 static uint64_t total_vtime;
 static uint64_t num_tasks;
 
-
 task_t *get_current_task() {
     return PLS->current_task;
 }
@@ -89,8 +88,8 @@ void save_extended_state_isr(interrupt_frame_t *i __attribute__((unused))) {
     }
 }
 
-int compare_tasks(task_t *a, task_t *b) {
-    return a->vtime - b->vtime;
+int compare_tasks(void *a, void *b) {
+    return ((task_t *) a)->vtime - ((task_t *) b)->vtime;
 }
 
 __attribute__((noreturn))
