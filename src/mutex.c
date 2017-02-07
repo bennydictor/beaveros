@@ -4,7 +4,7 @@
 
 void mutex_lock(mutex_t *mutex) {
     while (1) {
-        spinlock_lock(&mutex->lock);
+        spinlock_lock(&mutex->lock, 1);
         if (mutex->locked) {
             task_t *self = get_current_task();
             self->state = TASK_STATE_FROZEN;
@@ -21,7 +21,7 @@ void mutex_lock(mutex_t *mutex) {
 }
 
 void mutex_unlock(mutex_t *mutex) {
-    spinlock_lock(&mutex->lock);
+    spinlock_lock(&mutex->lock, 1);
     mutex->locked = 0;
     __sync_synchronize();
     for (;;) {

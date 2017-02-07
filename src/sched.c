@@ -20,12 +20,15 @@ typedef struct processor_local_state {
     struct processor_local_state *self;
     task_t *current_task;
     task_t *sse_state_owner;
+    int must_yield;
 } processor_local_state_t;
 
 static int extended_state_save_mode;
 static uint32_t extended_state_size;
 static uint64_t enabled_extended_states;
 
+static int pls_availible;
+static spinlock_t queue_lock;
 static min_heap_t* task_queue;
 static uint64_t total_vtime;
 static uint64_t num_tasks;
@@ -47,6 +50,11 @@ void task_switch_isr(interrupt_frame_t *i) {
     uint64_t vtime_delta = rdtsc() - PLS->current_task->started_at;
     PLS->current_task->vtime += vtime_delta;
     __sync_add_and_fetch(&total_vtime, vtime_delta);
+    if (queue_lock == (uint64_t)PLS->self) {
+        PLS->must_yield = 1;
+        goto out;
+    }
+    spinlock_lock(&queue_lock, 1);
     heap_push(task_queue, PLS->current_task);
     for (;;) {
         PLS->current_task = heap_pop(task_queue);
@@ -57,12 +65,14 @@ void task_switch_isr(interrupt_frame_t *i) {
             break;
         }
     }
+    spinlock_unlock(&queue_lock);
     PLS->current_task->state = TASK_STATE_RUNNING;
     *i = PLS->current_task->saved_state;
     if (extended_state_save_mode == SAVE_MODE_XSAVE_EAGER) {
         xrstor(PLS->current_task->processor_extended_state, enabled_extended_states);
     }
     PLS->current_task->started_at = rdtsc();
+ out:
     wrapic(APIC_TMR_INITCNT_REGISTER,
            BASE_TIME_QUANTUM * (20 - PLS->current_task->nice));
 }
@@ -123,6 +133,7 @@ void main_loop() {
     processor_local_state_t *pls = calloc(sizeof(processor_local_state_t), 1);
     pls->self = pls;
     wrmsr(IA32_GS_BASE, (uint64_t)pls);
+    pls_availible = 1;
     install_isr(save_extended_state_isr, NM_VECTOR);
     install_isr(task_switch_isr, YIELD_VECTOR);
     install_isr(apic_timer_fired_isr, APIC_TIMER_VECTOR);
@@ -155,7 +166,17 @@ task_t *start_task(void(*start)(void*), void *context, int ring) {
     if (!task_queue) {
         task_queue = make_heap(compare_tasks);
     }
-    heap_push(task_queue, task);
+    if (pls_availible) {
+        spinlock_lock(&queue_lock, (uint64_t)PLS->self);
+        heap_push(task_queue, task);
+        spinlock_unlock(&queue_lock);
+        if (PLS->must_yield) {
+            PLS->must_yield = 0;
+            yield();
+        }
+    } else {
+        heap_push(task_queue, task);
+    }
     return task;
 }
 

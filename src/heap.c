@@ -51,16 +51,13 @@ void sift_up(min_heap_t *h, size_t item) {
 }
 
 void *heap_pop(min_heap_t *h) {
-    spinlock_lock(&h->lock);
     void *ret = h->data[0];
     h->data[0] = h->data[--(h->size)];
     sift_down(h, 0);
-    spinlock_unlock(&h->lock);
     return ret;
 }
 
 void heap_push(min_heap_t *h, void *item) {
-    spinlock_lock(&h->lock);
     if (h->size + 1 > h->capacity) {
         h->capacity *= 2;
         h->data = realloc(h->data,
@@ -68,5 +65,4 @@ void heap_push(min_heap_t *h, void *item) {
     }
     h->data[h->size] = item;
     sift_up(h, (h->size)++);
-    spinlock_unlock(&h->lock);
 }

@@ -9,7 +9,6 @@ typedef struct {
     size_t size;
     size_t capacity;
     int (*cmp)(void *, void *);
-    spinlock_t lock;
 } min_heap_t;
 
 min_heap_t *make_heap(int (*cmp)(void *, void *));

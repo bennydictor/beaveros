@@ -11,7 +11,6 @@ typedef struct {
 typedef struct {
     queue_item_t *head;
     queue_item_t *tail;
-    spinlock_t lock;
 } queue_t;
 
 void enqueue(queue_t *q, void *e);
