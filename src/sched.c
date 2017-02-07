@@ -3,13 +3,13 @@
 #include <mapper.h>
 #include <sched.h>
 #include <cpu.h>
-#include <queue.h>
+#include <heap.h>
 #include <isr/apic.h>
 
 #define SAVE_MODE_FXSAVE_LAZY    0
 #define SAVE_MODE_XSAVE_EAGER    1
 #define SAVE_MODE_XSAVEOPT_EAGER 2
-#define BASE_TIME_QUANTUM        500
+#define BASE_TIME_QUANTUM        5000
 
 typedef struct processor_local_state {
     struct processor_local_state *self;
@@ -21,7 +21,10 @@ static int extended_state_save_mode;
 static uint32_t extended_state_size;
 static uint64_t enabled_extended_states;
 
-static queue_t task_queue;
+static min_heap_t* task_queue;
+static uint64_t total_vtime;
+static uint64_t num_tasks;
+
 
 task_t *get_current_task() {
     return PLS->current_task;
@@ -37,19 +40,17 @@ void task_switch_isr(interrupt_frame_t *i) {
     if (PLS->current_task->state == TASK_STATE_RUNNING) {
         PLS->current_task->state = TASK_STATE_IN_QUEUE;
     }
-    enqueue(&task_queue, PLS->current_task);
-    /* FIXME: deadlock if all tasks are frozen
-     * Stop enqueuing frozen tasks, please */
+    uint64_t vtime_delta = rdtsc() - PLS->current_task->started_at;
+    PLS->current_task->vtime += vtime_delta;
+    total_vtime += vtime_delta;
+    heap_push(task_queue, PLS->current_task);
     for (;;) {
-        PLS->current_task = dequeue(&task_queue);
+        PLS->current_task = heap_pop(task_queue);
         if (!PLS->current_task) {
             PANIC("NOTHING TO DO"); /* FIXME */
         }
         if (PLS->current_task->state == TASK_STATE_IN_QUEUE) {
             break;
-        }
-        if (PLS->current_task->state == TASK_STATE_FROZEN) {
-            enqueue(&task_queue, PLS->current_task);
         }
     }
     PLS->current_task->state = TASK_STATE_RUNNING;
@@ -57,6 +58,7 @@ void task_switch_isr(interrupt_frame_t *i) {
     if (extended_state_save_mode == SAVE_MODE_XSAVE_EAGER) {
         xrstor(PLS->current_task->processor_extended_state, enabled_extended_states);
     }
+    PLS->current_task->started_at = rdtsc();
     wrapic(APIC_TMR_INITCNT_REGISTER,
            BASE_TIME_QUANTUM * (20 - PLS->current_task->nice));
 }
@@ -68,6 +70,8 @@ void apic_timer_fired_isr(interrupt_frame_t *i) {
 
 void terminate_task(task_t *task) {
     task->state = TASK_STATE_TERMINATED;
+    total_vtime -= task->vtime;
+    num_tasks--;
     if (task == PLS->current_task) {
         yield();
         __builtin_unreachable();
@@ -83,6 +87,10 @@ void save_extended_state_isr(interrupt_frame_t *i __attribute__((unused))) {
         PLS->sse_state_owner = PLS->current_task;
         fxrstor(PLS->current_task->processor_extended_state);
     }
+}
+
+int compare_tasks(task_t *a, task_t *b) {
+    return a->vtime - b->vtime;
 }
 
 __attribute__((noreturn))
@@ -117,7 +125,6 @@ void main_loop() {
     install_isr(apic_timer_fired_isr, 0x43);
     wrapic(APIC_TMR_LVT_REGISTER, 0x43);
     wrapic(APIC_TMR_DIV_REGISTER, APIC_TMR_DIV_DIV16);
-
     task_t *t = start_task(NULL, NULL, 0);
     PLS->current_task = t;
     PLS->sse_state_owner = t;
@@ -139,8 +146,12 @@ task_t *start_task(void(*start)(void*), void *context, int ring) {
     task->saved_state.cs = 0x08;
     task->saved_state.ss = 0x10;
     task->saved_state.rflags = RFLAGS_INTERRUPT_FLAG;
-    enqueue(&task_queue, task);
     task->state = TASK_STATE_IN_QUEUE;
+    task->vtime = num_tasks ? total_vtime / num_tasks : 0;
+    if (!task_queue) {
+        task_queue = make_heap(compare_tasks);
+    }
+    heap_push(task_queue, task);
     return task;
 }
 

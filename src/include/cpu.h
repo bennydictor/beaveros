@@ -27,6 +27,8 @@ void wrcr3(uint64_t);
 uint64_t rdcr4(void);
 void wrcr4(uint64_t);
 
+uint64_t rdtsc(void);
+
 uint64_t rdmsr(uint64_t number);
 void wrmsr(uint64_t number, uint64_t value);
 

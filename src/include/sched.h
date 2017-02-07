@@ -6,16 +6,18 @@
 #define TASK_STATE_TERMINATED    2
 #define TASK_STATE_FROZEN        3
 
-#define PLS ((processor_local_state_t*)gsbase())
+#define PLS ((processor_local_state_t *) gsbase())
 
 #include <isr/idt.h>
 
 typedef struct {
     interrupt_frame_t saved_state;
     void *stack;
-    int state;
     void *processor_extended_state;
+    uint64_t vtime;
+    uint64_t started_at;
     int nice;
+    int state;
 } task_t;
 
 void terminate_task(task_t *task);

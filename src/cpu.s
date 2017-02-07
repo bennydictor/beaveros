@@ -22,6 +22,14 @@ wrcr\n:
 GEN         \n
 .endr
 
+.globl      rdtsc
+.type       rdtsc,      @function
+rdtsc:
+    rdtsc
+    shl     $32,        %rdx
+    or      %rdx,       %rax
+    ret
+
 .globl      rdmsr
 .type       rdmsr,      @function
 rdmsr:
