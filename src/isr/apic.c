@@ -23,16 +23,8 @@ void apic_init(void) {
     }
 
     /* Disable PIC 8259 */
-    for (uint8_t pic_irq = 0; pic_irq < 8; ++pic_irq) {
-        uint16_t val = inb(PORT_PIC8259_MASTER_DATA);
-        val |= 1 << pic_irq;
-        outb(PORT_PIC8259_MASTER_DATA, val);
-    }
-    for (uint8_t pic_irq = 8; pic_irq < 16; ++pic_irq) {
-        uint16_t val = inb(PORT_PIC8259_SLAVE_DATA);
-        val |= 1 << pic_irq;
-        outb(PORT_PIC8259_SLAVE_DATA, val);
-    }
+    outb(PORT_PIC8259_MASTER_DATA, 0xff);
+    outb(PORT_PIC8259_SLAVE_DATA, 0xff);
 
     /* Map APIC's page */
     uint64_t msr = rdmsr(APIC_BASE_MSR);
