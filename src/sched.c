@@ -41,7 +41,7 @@ void task_switch_isr(interrupt_frame_t *i) {
     }
     uint64_t vtime_delta = rdtsc() - PLS->current_task->started_at;
     PLS->current_task->vtime += vtime_delta;
-    total_vtime += vtime_delta;
+    __sync_add_and_fetch(&total_vtime, vtime_delta);
     heap_push(task_queue, PLS->current_task);
     for (;;) {
         PLS->current_task = heap_pop(task_queue);
@@ -69,8 +69,8 @@ void apic_timer_fired_isr(interrupt_frame_t *i) {
 
 void terminate_task(task_t *task) {
     task->state = TASK_STATE_TERMINATED;
-    total_vtime -= task->vtime;
-    num_tasks--;
+    __sync_sub_and_fetch(&total_vtime, task->vtime);
+    __sync_sub_and_fetch(&num_tasks, 1);
     if (task == PLS->current_task) {
         yield();
         __builtin_unreachable();
@@ -147,6 +147,7 @@ task_t *start_task(void(*start)(void*), void *context, int ring) {
     task->saved_state.rflags = RFLAGS_INTERRUPT_FLAG;
     task->state = TASK_STATE_IN_QUEUE;
     task->vtime = num_tasks ? total_vtime / num_tasks : 0;
+    __sync_add_and_fetch(&num_tasks, 1);
     if (!task_queue) {
         task_queue = make_heap(compare_tasks);
     }
