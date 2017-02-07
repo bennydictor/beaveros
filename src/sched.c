@@ -10,6 +10,11 @@
 #define SAVE_MODE_XSAVE_EAGER    1
 #define SAVE_MODE_XSAVEOPT_EAGER 2
 #define BASE_TIME_QUANTUM        5000
+#define APIC_TIMER_VECTOR        0x43
+#define YIELD_VECTOR             0x42
+#define TO_STRING_(x)            #x
+#define TO_STRING(x)             TO_STRING_(x)
+
 
 typedef struct processor_local_state {
     struct processor_local_state *self;
@@ -119,10 +124,9 @@ void main_loop() {
     pls->self = pls;
     wrmsr(IA32_GS_BASE, (uint64_t)pls);
     install_isr(save_extended_state_isr, NM_VECTOR);
-    /* TODO: tAIMER_VECTROR and YUILD_VECTOE */
-    install_isr(task_switch_isr, 0x42);
-    install_isr(apic_timer_fired_isr, 0x43);
-    wrapic(APIC_TMR_LVT_REGISTER, 0x43);
+    install_isr(task_switch_isr, YIELD_VECTOR);
+    install_isr(apic_timer_fired_isr, APIC_TIMER_VECTOR);
+    wrapic(APIC_TMR_LVT_REGISTER, APIC_TIMER_VECTOR);
     wrapic(APIC_TMR_DIV_REGISTER, APIC_TMR_DIV_DIV16);
     task_t *t = start_task(NULL, NULL, 0);
     PLS->current_task = t;
@@ -156,5 +160,5 @@ task_t *start_task(void(*start)(void*), void *context, int ring) {
 }
 
 void yield() {
-    asm volatile ("int $0x42");
+    asm volatile ("int $" TO_STRING(YIELD_VECTOR));
 }
