@@ -10,7 +10,7 @@ extern void *_apic_page;
 static uint32_t *const apic_page = (uint32_t *) &_apic_page;
 
 /* TODO: spurious isr */
-static void spurious_isr(interrupt_frame_t frame __attribute__ ((unused))) {
+static void spurious_isr(interrupt_frame_t *frame __attribute__ ((unused))) {
     printf("spurious!!\n");
 }
 

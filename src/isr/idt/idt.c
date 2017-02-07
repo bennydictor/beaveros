@@ -51,31 +51,31 @@ static const char *pf_error_mnemonics[5] = {
 };
 
 __attribute__ ((force_align_arg_pointer))
-void _default_c_isr(interrupt_frame_t frame) {
+void _default_c_isr(interrupt_frame_t *frame_ptr) {
     printf("hOI!!!!!! I'm dEFAuLT iSR!!\n");
-    printf("vector   = %#.2x", frame.vector);
-    if (frame.vector < 20) {
-        printf(" #%s", interrupt_mnemonic[frame.vector]);
-    } else if (frame.vector == SX_VECTOR) {
+    printf("vector   = %#.2x", frame_ptr->vector);
+    if (frame_ptr->vector < 20) {
+        printf(" #%s", interrupt_mnemonic[frame_ptr->vector]);
+    } else if (frame_ptr->vector == SX_VECTOR) {
         printf(" #SX");
     }
-    switch (frame.vector) {
+    switch (frame_ptr->vector) {
     case TS_VECTOR:
     case NP_VECTOR:
     case SS_VECTOR:
     case GP_VECTOR:
-        printf("(%#.4x)\n", frame.error);
+        printf("(%#.4x)\n", frame_ptr->error);
         for (int i = 0; i < 3; ++i) {
-            if (frame.error & (1 << i)) {
+            if (frame_ptr->error & (1 << i)) {
                 printf(selector_error_mnemonics[i]);
             }
         }
-        printf("\nselector = %#.16x\n", frame.error >> 3);
+        printf("\nselector = %#.16x\n", frame_ptr->error >> 3);
         break;
     case PF_VECTOR:
-        printf("(%#.4x)\n", frame.error);
+        printf("(%#.4x)\n", frame_ptr->error);
         for (int i = 0; i < 5; ++i) {
-            if (frame.error & (1 << i)) {
+            if (frame_ptr->error & (1 << i)) {
                 printf(pf_error_mnemonics[i]);
             }
         }
@@ -85,16 +85,25 @@ void _default_c_isr(interrupt_frame_t frame) {
         printf("\n");
         break;
     }
-    printf("return   = %#.2x:%#.16lx\n", frame.cs, frame.rip);
-    printf("stack    = %#.2x:%#.16lx\n", frame.ss, frame.rsp);
-    printf("rflags   = %#.16lx\n", frame.rflags);
+    printf("return   = %#.2x:%#.16lx\n", frame_ptr->cs, frame_ptr->rip);
+    printf("stack    = %#.2x:%#.16lx\n", frame_ptr->ss, frame_ptr->rsp);
+    printf("rflags   = %#.16lx\n", frame_ptr->rflags);
     for (int i = 0; i < 22; ++i) {
-        if (frame.rflags & (1 << i)) {
+        if (frame_ptr->rflags & (1 << i)) {
             printf(rflags_mnemonics[i]);
         }
     }
-    printf("\niopl     = %ld\n", (frame.rflags >> 12) & 0x3);
-
+    printf("\niopl     = %ld\n", (frame_ptr->rflags >> 12) & 0x3);
+    printf("rax = %#.16lx, rbx = %#.16lx, rcx = %#.16lx\n",
+           frame_ptr->rax, frame_ptr->rbx, frame_ptr->rcx);
+    printf("rdx = %#.16lx, rdi = %#.16lx, rsi = %#.16lx\n",
+           frame_ptr->rdx, frame_ptr->rdi, frame_ptr->rsi);
+    printf("rbp = %#.16lx, r8  = %#.16lx, r9  = %#.16lx\n",
+           frame_ptr->rbp, frame_ptr->r8, frame_ptr->r9);
+    printf("r10 = %#.16lx, r11 = %#.16lx, r12 = %#.16lx\n",
+           frame_ptr->r10, frame_ptr->r11, frame_ptr->r12);
+    printf("r13 = %#.16lx, r14 = %#.16lx, r15 = %#.16lx\n",
+           frame_ptr->r13, frame_ptr->r14, frame_ptr->r15);
     terminate();
 }
 

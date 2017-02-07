@@ -9,9 +9,17 @@
     push        $0
 .endif
     movl        $\n,                    4(%rsp)
-    mov         $\n,                    %rax
-    mov         _c_isr_table(,%rax,8),  %rax
+    .irp        r,      rax,rbx,rcx,rdx,rdi,rsi,rbp,r8,r9,r10,r11,r12,r13,r14,r15
+    push        %\r
+    .endr
+    mov         $\n,                    %rcx
+    mov         %rsp,                   %rdi
+    movabs      $_c_isr_table,          %rax
+    mov         (%rax, %rcx, 8),        %rax
     call        *%rax
+    .irp        r,      r15,r14,r13,r12,r11,r10,r9,r8,rbp,rsi,rdi,rdx,rcx,rbx,rax
+    pop         %\r
+    .endr
     add         $8,                     %rsp
     iretq
 

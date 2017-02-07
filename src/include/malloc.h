@@ -522,6 +522,8 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 */
 
 /* Version identifier to allow people to support multiple versions */
+#ifndef BEAVER_MALLOC_H
+#define BEAVER_MALLOC_H
 
 #include <dlmalloc_config.h>
 #ifndef DLMALLOC_VERSION
@@ -1418,3 +1420,4 @@ DLMALLOC_EXPORT int mspace_mallopt(int, int);
 #ifdef __cplusplus
 }  /* end of extern "C" */
 #endif /* __cplusplus */
+#endif /* BEAVER_MALLOC_H */

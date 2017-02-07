@@ -1,3 +1,6 @@
+#ifndef BEAVER_DLMALLOC_CONFIG_H
+#define BEAVER_DLMALLOC_CONFIG_H
+
 #define MALLOC_ALIGNMENT (16)
 #define ABORT PANIC("malloc error")
 #define MALLOC_FAILURE_ACTION PANIC("enomem") //fixme
@@ -23,3 +26,5 @@
 #include <terminate.h>
 #define EINVAL 22
 #define ENOMEM 12
+
+#endif /* BEAVER_DLMALLOC_CONFIG_H */
