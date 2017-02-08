@@ -22,6 +22,23 @@ wrcr\n:
 GEN         \n
 .endr
 
+.globl      rflags_restore
+.type       rflags_restore, @function
+rflags_restore:
+    push    %rdi
+    popfq
+    ret
+
+.globl      cli_save
+.type       cli_save,   @function
+cli_save:
+    pushfq
+    pop     %rax
+    cli
+    ret
+
+
+
 .globl      rdtsc
 .type       rdtsc,      @function
 rdtsc:

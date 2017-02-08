@@ -14,6 +14,7 @@
 #define CR4_OSXMMEXCPT               (1 << 10)
 #define CR4_OSXSAVE                  (1 << 18)
 #define RFLAGS_INTERRUPT_FLAG        (1 << 9)
+#define MASK_INTERRUPTS(...)         ({uint64_t _flags = cli_save(); __VA_ARGS__; rflags_restore(_flags);})
 
 uint64_t rdcr0(void);
 void wrcr0(uint64_t);
@@ -31,6 +32,9 @@ uint64_t rdtsc(void);
 
 uint64_t rdmsr(uint64_t number);
 void wrmsr(uint64_t number, uint64_t value);
+
+void rflags_restore(uint64_t flags);
+uint64_t cli_save(void);
 
 void fxsave(void *save_region);
 void fxrstor(void *save_region);
