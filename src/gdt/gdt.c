@@ -2,9 +2,9 @@
 #include <terminate.h>
 #include <string.h>
 #include <mapper.h>
+#include <malloc.h>
 
-extern void *_gdt_page;
-extern void *_isr_stack_top;
+#define IOMAP_SIZE 32
 
 typedef struct {
     uint16_t limit_1;
@@ -24,7 +24,6 @@ typedef struct {
     uint8_t gr : 1;
     uint8_t base_3;
 } __attribute__ ((packed)) segment_descriptor_t;
-segment_descriptor_t *descs = (segment_descriptor_t *) &_gdt_page;
 
 typedef struct {
     uint16_t limit_1;
@@ -42,7 +41,6 @@ typedef struct {
     uint32_t base_4;
     uint32_t mbz_3;
 } __attribute__ ((packed)) tss_descriptor_t;
-tss_descriptor_t *tss_desc;
 
 typedef struct {
     uint32_t mbz_1;
@@ -59,47 +57,46 @@ typedef struct {
     uint16_t mbz_4;
     uint16_t iomap_offset;
 } __attribute__ ((packed)) tss_t;
-tss_t *tss;
 
 typedef struct {
     uint16_t limit;
     uint64_t offset;
 } __attribute__ ((packed)) gdtr_t;
-gdtr_t gdtr;
 
-void install_segment_descriptor(uint8_t code, uint8_t priv) {
-    descs->base_1 = 0;
-    descs->base_2 = 0;
-    descs->base_3 = 0;
-    descs->limit_1 = 0xffff;
-    descs->limit_2 = 0xf;
-    descs->accessed = 0;
-    descs->rw = 1;
-    descs->dc = 0;
-    descs->ex = code;
-    descs->mbo = 1;
-    descs->priv = priv;
-    descs->p = 1;
-    descs->avl = 0;
-    descs->l = code;
-    descs->sz = code ^ 1;
-    descs->gr = 1;
-    ++descs;
+void install_segment_descriptor(uint8_t code, uint8_t priv, segment_descriptor_t **descs) {
+    (*descs)->base_1 = 0;
+    (*descs)->base_2 = 0;
+    (*descs)->base_3 = 0;
+    (*descs)->limit_1 = 0xffff;
+    (*descs)->limit_2 = 0xf;
+    (*descs)->accessed = 0;
+    (*descs)->rw = 1;
+    (*descs)->dc = 0;
+    (*descs)->ex = code;
+    (*descs)->mbo = 1;
+    (*descs)->priv = priv;
+    (*descs)->p = 1;
+    (*descs)->avl = 0;
+    (*descs)->l = code;
+    (*descs)->sz = code ^ 1;
+    (*descs)->gr = 1;
+    ++*descs;
 }
 
 void _lgdt(void *);
 
 void gdt_init(void) {
-    map_page(&_gdt_page, MAP_ANON, PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
+    segment_descriptor_t *descs = malloc(sizeof(segment_descriptor_t) * 5 + sizeof(tss_descriptor_t));
+    void *gdt_base = descs;
     memset(descs, 0, sizeof(segment_descriptor_t));
     ++descs;
-    install_segment_descriptor(1, 0);
-    install_segment_descriptor(0, 0);
-    install_segment_descriptor(1, 3);
-    install_segment_descriptor(0, 3);
+    install_segment_descriptor(1, 0, &descs);
+    install_segment_descriptor(0, 0, &descs);
+    install_segment_descriptor(1, 3, &descs);
+    install_segment_descriptor(0, 3, &descs);
 
-    tss_desc = (void *) descs;
-    tss = (void *) (tss_desc + 1);
+    tss_descriptor_t *tss_desc = (void *) descs;
+    tss_t *tss = malloc(sizeof(tss_t) + IOMAP_SIZE);
 
     tss_desc->limit_1 = sizeof(tss_t) & 0xffff;
     tss_desc->limit_2 = (sizeof(tss_t) & 0xf0000) >> 16;
@@ -121,24 +118,25 @@ void gdt_init(void) {
     memset(&tss->mbz_3, 0, sizeof(tss->mbz_3));
     tss->mbz_4 = 0;
     for (int i = 0; i < 3; ++i) {
-        tss->rsp[i].lower = (uint64_t) &_isr_stack_top & 0xffffffff;
-        tss->rsp[i].upper = ((uint64_t) &_isr_stack_top &
+        void *stack = malloc(PAGE_SIZE);
+        tss->rsp[i].lower = (uint64_t) stack & 0xffffffff;
+        tss->rsp[i].upper = ((uint64_t) stack &
                 0xffffffff00000000) >> 32;
     }
     for (int i = 0; i < 7; ++i) {
-        tss->ist[i].lower = (uint64_t) &_isr_stack_top & 0xffffffff;
-        tss->ist[i].upper = ((uint64_t) &_isr_stack_top &
+        void *stack = malloc(PAGE_SIZE);
+        tss->ist[i].lower = (uint64_t) stack & 0xffffffff;
+        tss->ist[i].upper = ((uint64_t) stack &
                 0xffffffff00000000) >> 32;
     }
     tss->iomap_offset = sizeof(tss_t);
 
     uint64_t *iomap = (void *) (tss + 1);
-    memset(iomap, 0, 32);
+    memset(iomap, 0, IOMAP_SIZE);
 
-    ASSERT((void *) (iomap + 32) - (void *) &_gdt_page <= PAGE_SIZE);
+    gdtr_t *gdtr = malloc(sizeof(gdtr_t));
+    gdtr->offset = (uint64_t) gdt_base;
+    gdtr->limit = (sizeof(segment_descriptor_t) * 5 + sizeof(tss_descriptor_t) - 1);
 
-    gdtr.offset = (uint64_t) &_gdt_page;
-    gdtr.limit = (void *) (iomap + 32) - (void *) &_gdt_page - 1;
-
-    _lgdt(&gdtr);
+    _lgdt(gdtr);
 }

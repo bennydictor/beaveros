@@ -4,6 +4,13 @@
 #include <cpu.h>
 #include <terminate.h>
 
+#define DOUBLE_FAULT_STACK 1
+#define MACHINE_CHECK_STACK 2
+#define NMI_STACK 3
+#define TASK_SWITCH_STACK 4
+#define YIELD_STACK 5
+#define PAGE_FAULT_STACK 6
+
 typedef struct {
     uint16_t offset_1;
     uint16_t seg_sel;
@@ -28,9 +35,6 @@ extern isr_t _c_isr_table[256];
 
 extern void *_idt_page;
 static interrupt_descriptor_t *idt_page = (void *) &_idt_page;
-
-extern void *_isr_stack_bottom;
-static void *isr_stack_bottom = &_isr_stack_bottom;
 
 static const char *interrupt_mnemonic[20] = {
     "DE", "DB", "NMI", "BP", "OF", "BR", "UD", "NM", "DF", "", "TS", "NP",
@@ -107,13 +111,14 @@ void _default_c_isr(interrupt_frame_t *frame_ptr) {
     terminate();
 }
 
-static void install_asm_isr(isr_t isr, uint8_t vector) {
+static void install_asm_isr(isr_t isr, uint8_t vector, uint8_t stack) {
     interrupt_descriptor_t desc = {0};
     desc.offset_1 = (uint64_t) isr & 0xffff;
     desc.offset_2 = ((uint64_t) isr & 0xffff0000) >> 16;
     desc.offset_3 = ((uint64_t) isr & 0xffffffff00000000ULL) >> 32;
     desc.seg_sel = 8;
     desc.dpl = 0;
+    desc.ist = stack;
     desc.present = 1;
     desc.type = 0xE;
     idt_page[vector] = desc;
@@ -122,15 +127,33 @@ static void install_asm_isr(isr_t isr, uint8_t vector) {
 void isr_init(void) {
     ASSERT(sizeof(interrupt_descriptor_t) == 16);
     map_page(idt_page, MAP_ANON, PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
-    map_page(isr_stack_bottom, MAP_ANON, PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT);
     memset(idt_page, 0, PAGE_SIZE);
     idtr.limit = PAGE_SIZE - 1;
     idtr.offset = (uint64_t) idt_page;
-
-    for (int i = 0; i < 256; ++i) {
-        install_asm_isr(_isr_table[i], i);
+    for (int i = 0; i < 2; ++i) {
+        install_asm_isr(_isr_table[i], i, 0);
     }
-
+    install_asm_isr(_isr_table[2], 2, NMI_STACK);
+    for (int i = 3; i < 8; ++i) {
+        install_asm_isr(_isr_table[i], i, 0);
+    }
+    install_asm_isr(_isr_table[8], 8, DOUBLE_FAULT_STACK);
+    for (int i = 9; i < 14; ++i) {
+        install_asm_isr(_isr_table[i], i, 0);
+    }
+    install_asm_isr(_isr_table[14], 14, PAGE_FAULT_STACK);
+    for (int i = 15; i < 18; ++i) {
+        install_asm_isr(_isr_table[i], i, 0);
+    }
+    install_asm_isr(_isr_table[18], 18, MACHINE_CHECK_STACK);
+    for (int i = 19; i < 0x42; ++i) {
+        install_asm_isr(_isr_table[i], i, 0);
+    }
+    install_asm_isr(_isr_table[0x42], 0x42, YIELD_STACK);
+    install_asm_isr(_isr_table[0x43], 0x43, TASK_SWITCH_STACK);
+    for (int i = 0x44; i < 256; ++i) {
+        install_asm_isr(_isr_table[i], i, 0);
+    }
     asm volatile ("lidt (%0)"::"r" (&idtr));
 }
 

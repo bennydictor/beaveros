@@ -51,10 +51,6 @@ SECTIONS {
     _special_pages -= 0x1000;
     _kernel_stack_bottom = _special_pages;
 
-    _isr_stack_top = _special_pages;
-    _special_pages -= 0x1000;
-    _isr_stack_bottom = _special_pages;
-
     _special_pages -= 0x100000;
     _first_mb = _special_pages;
 
