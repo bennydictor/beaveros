@@ -13,6 +13,8 @@
 typedef struct {
     interrupt_frame_t saved_state;
     void *stack;
+    void *kernel_stack;
+    void *rsp0;
     void *processor_extended_state;
     uint64_t vtime;
     uint64_t started_at;

@@ -17,6 +17,8 @@
 #define RFLAGS_INTERRUPT_FLAG        (1 << 9)
 #define MASK_INTERRUPTS(...)         ({uint64_t _flags = cli_save(); __VA_ARGS__; rflags_restore(_flags);})
 
+void **get_rsp0p(void);
+
 uint64_t rdcr0(void);
 void wrcr0(uint64_t);
 

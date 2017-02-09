@@ -41,6 +41,7 @@ void task_switch_isr(interrupt_frame_t *i) {
     } else if (extended_state_save_mode == SAVE_MODE_XSAVE_EAGER) {
         xsave(PLS->current_task->processor_extended_state, enabled_extended_states);
     }
+    PLS->current_task->rsp0 = *get_rsp0p();
     PLS->current_task->saved_state = *i;
     if (PLS->current_task->state == TASK_STATE_RUNNING) {
         PLS->current_task->state = TASK_STATE_IN_QUEUE;
@@ -65,6 +66,7 @@ void task_switch_isr(interrupt_frame_t *i) {
     if (extended_state_save_mode == SAVE_MODE_XSAVE_EAGER) {
         xrstor(PLS->current_task->processor_extended_state, enabled_extended_states);
     }
+    *get_rsp0p() = PLS->current_task->rsp0;
     PLS->current_task->started_at = rdtsc();
     apic_set_initial_count(BASE_TIME_QUANTUM * (20 - PLS->current_task->nice));
 }
@@ -144,6 +146,8 @@ task_t *start_task(void (*start)(void *), void *context, int ring) {
     task->processor_extended_state = memalign(64, extended_state_size);
     memset(task->processor_extended_state, 0, extended_state_size);
     task->stack = malloc(PAGE_SIZE);
+    task->kernel_stack = malloc(PAGE_SIZE);  /* Not really needed for ring 0 tasks */
+    task->rsp0 = task->kernel_stack + PAGE_SIZE;
     task->saved_state.rsp = (uint64_t) task->stack + PAGE_SIZE;
     task->saved_state.rdi = (uint64_t) context;
     task->saved_state.rip = (uint64_t) start;

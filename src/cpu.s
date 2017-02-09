@@ -149,3 +149,27 @@ cpuid:
 .ret:
     pop     %rbx
     ret
+
+.globl      get_rsp0p
+.type       get_rsp0p,  @function
+get_rsp0p:
+    push    $0
+    push    $0
+    sgdt    6(%rsp)
+    pop     %rcx
+    pop     %rax
+    str     %rcx
+    add     %rcx,       %rax
+    mov     2(%rax),    %ecx
+    and     $0xFFFFFF,  %ecx
+    xor     %rdx,       %rdx
+    mov     7(%rax),    %dl
+    shl     $24,        %rdx
+    or      %rdx,       %rcx
+    mov     8(%rax),    %edx
+    shl     $32,        %rdx
+    or      %rdx,       %rcx
+    lea     4(%rcx),    %rax
+
+
+    ret
