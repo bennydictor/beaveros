@@ -7,6 +7,7 @@
 #include <math.h>
 #include <mapper.h>
 #include <gdt.h>
+#include <acpi.h>
 #include <isr/idt.h>
 #include <isr/apic.h>
 #include <sched.h>
@@ -103,8 +104,11 @@ int main(uint64_t used_mem) {
     isr_init();
     apic_init();
 
-    for(uint64_t i = 0; i < 10; i++) {
-        start_task(test_task, (void *) i, 0);
+    if (!find_sdt()) {
+        PANIC("can't find SDT\n");
     }
-    main_loop();
+
+    find_madt();
+
+    intloop();
 }

@@ -5,7 +5,7 @@
 #include <math.h>
 
 /* TODO: read physical window address from kernel elf */
-#define PHYS_WINDOW 0xfffffffffffff000ULL
+#define PHYS_WINDOW 0xffffffffffffe000ULL
 
 bool load_kernel(void *start, uint64_t *entry) {
     elf64_ehdr_t *ehdr = start;
@@ -57,6 +57,7 @@ bool load_kernel(void *start, uint64_t *entry) {
 
     /* FIXME: this looks so buggy... */
     map_page(PHYS_WINDOW, 0, PAGE_RW_BIT | PAGE_G_BIT);
+    map_page(PHYS_WINDOW + 0x1000, 0, PAGE_RW_BIT | PAGE_G_BIT);
     map_page(PHYS_WINDOW - 0x1000,
             (uint32_t) get_used_memory() - 0x1000, PAGE_RW_BIT | PAGE_G_BIT);
 

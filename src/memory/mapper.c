@@ -10,9 +10,8 @@ typedef struct {
     void *next;
 } page_header_t;
 
-extern void *_phys_window_page;
 extern void *_phys_window_pt;
-void *const phys_window_page = &_phys_window_page;
+void *phys_window_addr;
 page_table_entry_t *const phys_window_pt = (void *) &_phys_window_pt;
 
 static page_table_entry_t *pml4;

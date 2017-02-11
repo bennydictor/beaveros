@@ -34,18 +34,23 @@ typedef uint64_t page_table_entry_t;
 
 #include <stddef.h>
 
-/* TODO: maybe a better constant for MAP_ANON? */
 #define MAP_ANON        NULL
 
-#define PHYS_WINDOW(TYPE) ((TYPE *) (void *) phys_window_page)
+#define PHYS_WINDOW(TYPE) ((TYPE *) phys_window_addr)
 #define PHYS_LOOK(X) ({ \
-    ASSERT(((uint64_t) (X) & ~PAGE_ADDR_BITS) == 0); \
+    phys_window_addr = (void *) 0xffffffffffffe000 + (((uint64_t) X) \
+            & ~PAGE_ADDR_BITS); \
+    phys_window_pt[510] = \
+            (((uint64_t) X) & PAGE_ADDR_BITS) | \
+                PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT; \
     phys_window_pt[511] = \
-            (uint64_t) (X) | PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT; \
-    asm volatile ("invlpg (%0)"::"r"(phys_window_page)); \
+            ((((uint64_t) X) & PAGE_ADDR_BITS) + 0x1000) | \
+                PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT; \
+    asm volatile ("invlpg (%0)"::"r"(0xffffffffffffe000)); \
+    asm volatile ("invlpg (%0)"::"r"(0xfffffffffffff000)); \
 })
 
-extern void *const phys_window_page;
+extern void *phys_window_addr;
 extern page_table_entry_t *const phys_window_pt;
 
 void mapper_init(void);
