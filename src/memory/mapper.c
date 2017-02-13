@@ -11,8 +11,11 @@ typedef struct {
 } page_header_t;
 
 extern void *_phys_window_pt;
-void *phys_window_addr;
+extern void *_phys_window_pages;
+extern void *_phys_windows;
+void *const phys_window_pages = (void *) &_phys_window_pages;
 page_table_entry_t *const phys_window_pt = (void *) &_phys_window_pt;
+uint64_t const phys_windows = (uint64_t) &_phys_windows;
 
 static page_table_entry_t *pml4;
 static page_header_t *first_free_block;
@@ -22,16 +25,16 @@ void mapper_init(void) {
 }
 
 void add_phys_mem(void *phys_mem_start, size_t length) {
-    PHYS_LOOK(phys_mem_start);
-    PHYS_WINDOW(page_header_t)->size = length / PAGE_SIZE;
-    PHYS_WINDOW(page_header_t)->next = first_free_block;
+    PHYS_LOOK(phys_mem_start, 0);
+    PHYS_WINDOW(page_header_t, 0)->size = length / PAGE_SIZE;
+    PHYS_WINDOW(page_header_t, 0)->next = first_free_block;
     first_free_block = phys_mem_start;
 }
 
 static void free_page(page_header_t *page) {
-    PHYS_LOOK(page);
-    PHYS_WINDOW(page_header_t)->size = 1;
-    PHYS_WINDOW(page_header_t)->next = first_free_block;
+    PHYS_LOOK(page, 0);
+    PHYS_WINDOW(page_header_t, 0)->size = 1;
+    PHYS_WINDOW(page_header_t, 0)->next = first_free_block;
     first_free_block = page;
 }
 
@@ -40,15 +43,15 @@ static void *alloc_page(void) {
         PANIC("no memory availible");
     }
     void *ret = first_free_block;
-    PHYS_LOOK(first_free_block);
-    if (PHYS_WINDOW(page_header_t)->size == 1) {
-        first_free_block = PHYS_WINDOW(page_header_t)->next;
+    PHYS_LOOK(first_free_block, 0);
+    if (PHYS_WINDOW(page_header_t, 0)->size == 1) {
+        first_free_block = PHYS_WINDOW(page_header_t, 0)->next;
     } else {
-        page_header_t header = *PHYS_WINDOW(page_header_t);
+        page_header_t header = *PHYS_WINDOW(page_header_t, 0);
         --header.size;
         first_free_block = (void *) first_free_block + PAGE_SIZE;
-        PHYS_LOOK(first_free_block);
-        *PHYS_WINDOW(page_header_t) = header;
+        PHYS_LOOK(first_free_block, 0);
+        *PHYS_WINDOW(page_header_t, 0) = header;
     }
 
     return ret;
@@ -56,38 +59,38 @@ static void *alloc_page(void) {
 
 static void *calloc_page(void) {
     void *ret = alloc_page();
-    PHYS_LOOK(ret);
-    memset(PHYS_WINDOW(void), 0, PAGE_SIZE);
+    PHYS_LOOK(ret, 0);
+    memset(PHYS_WINDOW(void, 0), 0, PAGE_SIZE);
     return ret;
 }
 
 static void unmap_page(void *virt) {
-    PHYS_LOOK(pml4);
-    page_table_entry_t *pml4e = PHYS_WINDOW(page_table_entry_t) +
+    PHYS_LOOK(pml4, 0);
+    page_table_entry_t *pml4e = PHYS_WINDOW(page_table_entry_t, 0) +
             BITS(virt, 39, 48);
 
     if (!(*pml4e & PAGE_P_BIT)) {
         return;
     }
     page_table_entry_t *pdp = (void *) (*pml4e & PAGE_ADDR_BITS);
-    PHYS_LOOK(pdp);
-    page_table_entry_t *pdpe = PHYS_WINDOW(page_table_entry_t) +
+    PHYS_LOOK(pdp, 0);
+    page_table_entry_t *pdpe = PHYS_WINDOW(page_table_entry_t, 0) +
             BITS(virt, 30, 39);
 
     if (!(*pdpe & PAGE_P_BIT)) {
         return;
     }
     page_table_entry_t *pd = (void *) (*pdpe & PAGE_ADDR_BITS);
-    PHYS_LOOK(pd);
-    page_table_entry_t *pde = PHYS_WINDOW(page_table_entry_t) +
+    PHYS_LOOK(pd, 0);
+    page_table_entry_t *pde = PHYS_WINDOW(page_table_entry_t, 0) +
             BITS(virt, 21, 30);
 
     if (!(*pde & PAGE_P_BIT)) {
         return;
     }
     page_table_entry_t *pt = (void *) (*pde & PAGE_ADDR_BITS);
-    PHYS_LOOK(pt);
-    page_table_entry_t *pte = PHYS_WINDOW(page_table_entry_t) +
+    PHYS_LOOK(pt, 0);
+    page_table_entry_t *pte = PHYS_WINDOW(page_table_entry_t, 0) +
             BITS(virt, 12, 21);
 
     if (*pte & PAGE_P_BIT) {
@@ -111,27 +114,27 @@ void map_page(void *virt, void *phys, uint64_t flags) {
         goto invlpg;
     }
 
-    PHYS_LOOK(pml4);
+    PHYS_LOOK(pml4, 0);
     page_table_entry_t *pml4e =
-            PHYS_WINDOW(page_table_entry_t) + BITS(virt, 39, 48);
+            PHYS_WINDOW(page_table_entry_t, 0) + BITS(virt, 39, 48);
     *pml4e |= flags & PML4_FLAGS_MASK;
 
     if (!(*pml4e & PAGE_P_BIT)) {
         *pml4e = (uint64_t) calloc_page();
     }
     page_table_entry_t *pdp = (void *) (*pml4e & PAGE_ADDR_BITS);
-    PHYS_LOOK(pdp);
+    PHYS_LOOK(pdp, 0);
     page_table_entry_t *pdpe =
-            PHYS_WINDOW(page_table_entry_t) + BITS(virt, 30, 39);
+            PHYS_WINDOW(page_table_entry_t, 0) + BITS(virt, 30, 39);
     *pdpe |= flags & PDP_FLAGS_MASK;
 
     if (!(*pdpe & PAGE_P_BIT)) {
         *pdpe = (uint64_t) calloc_page();
     }
     page_table_entry_t *pd = (void *) (*pdpe & PAGE_ADDR_BITS);
-    PHYS_LOOK(pd);
+    PHYS_LOOK(pd, 0);
     page_table_entry_t *pde =
-            PHYS_WINDOW(page_table_entry_t) + BITS(virt, 21, 30);
+            PHYS_WINDOW(page_table_entry_t, 0) + BITS(virt, 21, 30);
     *pde |= flags & PD_FLAGS_MASK;
 
     if (!(*pde & PAGE_P_BIT)) {
@@ -139,9 +142,9 @@ void map_page(void *virt, void *phys, uint64_t flags) {
     }
     page_table_entry_t *pt = (void *) (*pde & PAGE_ADDR_BITS);
 
-    PHYS_LOOK(pt);
+    PHYS_LOOK(pt, 0);
     page_table_entry_t *pte =
-            PHYS_WINDOW(page_table_entry_t) + BITS(virt, 12, 21);
+            PHYS_WINDOW(page_table_entry_t, 0) + BITS(virt, 12, 21);
 
     if (phys == MAP_ANON) {
         if (*pte & PAGE_P_BIT) {
@@ -154,7 +157,7 @@ void map_page(void *virt, void *phys, uint64_t flags) {
             free_page((void *) (*pte & PAGE_ADDR_BITS));
         }
     }
-    PHYS_LOOK(pt);
+    PHYS_LOOK(pt, 0);
     *pte = flags & PT_FLAGS_MASK;
     *pte |= (uint64_t) phys;
 

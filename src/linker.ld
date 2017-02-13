@@ -31,8 +31,9 @@ SECTIONS {
     . = ALIGN(0x1000);
     _prog_break_begin = .;
 
+    _phys_windows = 4;
 
-    _special_pages = 0xffffffffffffe000;
+    _special_pages = 0xfffffffffffff000 - 0x1000 * (_phys_windows - 1);
     _phys_window_pages = _special_pages;
 
     _special_pages -= 0x1000;

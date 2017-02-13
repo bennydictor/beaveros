@@ -89,6 +89,7 @@ void test_task(void *c_ptr_thingy_thing) {
 
 __attribute__((noreturn))
 int main(uint64_t used_mem) {
+    printf("Mapping first MB to address %p\n", first_mb);
     for (uintptr_t pg = 0x0; pg < 0x100000; pg += 0x1000) {
         map_page(first_mb + pg, (void *) pg, PAGE_P_BIT |
                         PAGE_RW_BIT | PAGE_G_BIT);
@@ -104,6 +105,7 @@ int main(uint64_t used_mem) {
     gdt_init();
     isr_init();
     apic_init();
+    timer_init();
 
     if (!find_sdt()) {
         PANIC("can't find SDT\n");

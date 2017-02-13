@@ -36,21 +36,16 @@ typedef uint64_t page_table_entry_t;
 
 #define MAP_ANON        NULL
 
-#define PHYS_WINDOW(TYPE) ((TYPE *) phys_window_addr)
-#define PHYS_LOOK(X) ({ \
-    phys_window_addr = (void *) 0xffffffffffffe000 + (((uint64_t) X) \
-            & ~PAGE_ADDR_BITS); \
-    phys_window_pt[510] = \
-            (((uint64_t) X) & PAGE_ADDR_BITS) | \
-                PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT; \
-    phys_window_pt[511] = \
-            ((((uint64_t) X) & PAGE_ADDR_BITS) + 0x1000) | \
-                PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT; \
-    asm volatile ("invlpg (%0)"::"r"(0xffffffffffffe000)); \
-    asm volatile ("invlpg (%0)"::"r"(0xfffffffffffff000)); \
+#define PHYS_WINDOW(TYPE, N) ((TYPE *) (void *) phys_window_pages + (N << 12))
+#define PHYS_LOOK(X, N) ({ \
+    ASSERT(((uint64_t) (X) & ~PAGE_ADDR_BITS) == 0); \
+    phys_window_pt[512 - phys_windows + N] = \
+            (uint64_t) (X) | PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT; \
+    asm volatile ("invlpg (%0)"::"r"(PHYS_WINDOW(void, N))); \
 })
 
-extern void *phys_window_addr;
+extern uint64_t const phys_windows;
+extern void *const phys_window_pages;
 extern page_table_entry_t *const phys_window_pt;
 
 void mapper_init(void);
