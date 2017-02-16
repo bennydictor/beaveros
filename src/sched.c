@@ -66,13 +66,12 @@ void task_switch_isr(interrupt_frame_t *i) {
         xrstor(PLS->current_task->processor_extended_state, enabled_extended_states);
     }
     PLS->current_task->started_at = rdtsc();
-    wrapic(APIC_TMR_INITCNT_REGISTER,
-           BASE_TIME_QUANTUM * (20 - PLS->current_task->nice));
+    apic_set_initial_count(BASE_TIME_QUANTUM * (20 - PLS->current_task->nice));
 }
 
 void apic_timer_fired_isr(interrupt_frame_t *i) {
     task_switch_isr(i);
-    wrapic(APIC_EOI_REGISTER, 0);
+    apic_eoi();
 }
 
 void terminate_task(task_t *task) {
@@ -129,8 +128,7 @@ void main_loop() {
     install_isr(save_extended_state_isr, NM_VECTOR);
     install_isr(task_switch_isr, YIELD_VECTOR);
     install_isr(apic_timer_fired_isr, APIC_TIMER_VECTOR);
-    wrapic(APIC_TMR_LVT_REGISTER, APIC_TIMER_VECTOR);
-    wrapic(APIC_TMR_DIV_REGISTER, APIC_TMR_DIV_DIV16);
+    apic_configure_timer(APIC_TIMER_VECTOR, 0, APIC_TMR_DIV_DIV16);
     task_t *t = start_task(NULL, NULL, 0);
     PLS->current_task = t;
     PLS->sse_state_owner = t;
