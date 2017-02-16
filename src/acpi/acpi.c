@@ -31,25 +31,6 @@ typedef struct {
     uint32_t creator_revision;
 } __attribute__((packed)) acpi_table_header_t;
 
-typedef struct {
-    char signature[4];
-    uint32_t length;
-    uint8_t revision;
-    uint8_t checksum;
-    char oemid[6];
-    uint64_t oem_table_id;
-    uint32_t oem_revision;
-    uint32_t creator_id;
-    uint32_t creator_revision;
-    uint32_t local_controller_address;
-    uint32_t flags;
-} madt_t;
-
-typedef struct {
-    uint32_t entry_type;
-    uint32_t record_length;
-} madt_entry_header_t;
-
 static char xsdt;
 static uint64_t sdt;
 
@@ -84,11 +65,11 @@ char find_sdt(void) {
     return 0;
 }
 
-void find_acpi_table(char sign[4], void **ptrs, size_t *size) {
+size_t find_acpi_table(char sign[4], void ***ptrs, size_t *size) {
     PHYS_LOOK(sdt);
     size_t entry_size = 4 << xsdt;
-    size_t entries = PHYS_WINDOW(acpi_table_header_t)->length -
-            sizeof(acpi_table_header_t) / entry_size;
+    size_t entries = (PHYS_WINDOW(acpi_table_header_t)->length -
+            sizeof(acpi_table_header_t)) / entry_size;
     size_t cur_size = 0;
     for (size_t i = 0; i < entries; ++i) {
         void *addr_ptr = PHYS_WINDOW(void) + sizeof(acpi_table_header_t) +
@@ -101,27 +82,16 @@ void find_acpi_table(char sign[4], void **ptrs, size_t *size) {
         }
         PHYS_LOOK(addr);
         if (strncmp(sign, PHYS_WINDOW(char), 4) == 0) {
-            if (size == 0) {
+            if (*size == 0) {
                 *ptrs = malloc(8);
                 *size = 1;
             } else if (cur_size == *size) {
                 *size *= 2;
                 *ptrs = realloc(*ptrs, 8 * *size);
             }
-            ptrs[cur_size++] = (void *) addr;
+            (*ptrs)[cur_size++] = (void *) addr;
         }
         PHYS_LOOK(sdt);
     }
-    *size = cur_size;
-}
-
-void find_madt(void) {
-    madt_t *madt_ptrs = NULL;
-    size_t ptr_cnt = 0;
-    find_acpi_table("APIC", (void **) &madt_ptrs, &ptr_cnt);
-    if (ptr_cnt != 1) {
-        PANIC("Found %zd MADT(s), expected 1", ptr_cnt);
-    }
-    printf("Found MADT\n");
-    /* TODO */
+    return cur_size;
 }
