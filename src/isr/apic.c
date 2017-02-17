@@ -6,7 +6,6 @@
 #include <mapper.h>
 #include <io/port.h>
 
-
 extern void *_apic_page;
 static uint32_t *const apic_page = (uint32_t *) &_apic_page;
 static char x2apic;
@@ -16,11 +15,11 @@ static void spurious_isr(interrupt_frame_t *frame __attribute__ ((unused))) {
     printf("spurious!!\n");
 }
 
-void wrapic(uint16_t number, uint32_t value) {
+static void wrapic(uint16_t number, uint32_t value) {
     apic_page[number / sizeof(uint32_t)] = value;
 }
 
-uint32_t rdapic(uint16_t number) {
+static uint32_t rdapic(uint16_t number) {
     return apic_page[number / sizeof(uint32_t)];
 }
 
@@ -48,14 +47,12 @@ void apic_init(void) {
 
     /* Reset APIC */
     if (x2apic) {
-        printf("using x2apic");
         wrmsr(APIC_TMR_LVT_MSR, APIC_TMR_LVT_DISABLE);
         wrmsr(APIC_PERF_LVT_MSR, APIC_PERF_LVT_NMI);
         wrmsr(APIC_LINT0_LVT_MSR, APIC_LINT0_LVT_DISABLE);
         wrmsr(APIC_LINT1_LVT_MSR, APIC_LINT1_LVT_DISABLE);
         wrmsr(APIC_TPR_MSR, 0);
     } else {
-        printf("using xapic");
         wrapic(APIC_DFR_REGISTER, APIC_DFR_FLAT);
         uint32_t ldr = rdapic(APIC_LDR_REGISTER);
         ldr &= 0x00ffffff;
