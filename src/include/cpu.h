@@ -6,6 +6,7 @@
 #define IA32_FS_BASE                 (0xC0000100)
 #define IA32_GS_BASE                 (0xC0000101)
 #define CPUID_1_EDX_APIC_BIT         (1 << 9)
+#define CPUID_1_ECX_X2APIC_BIT       (1 << 21)
 #define CPUID_1_ECX_XSAVE_BIT        (1 << 26)
 #define CPUID_0D_1_EAX_XSAVEOPT_BIT  (1 << 0)
 #define CR0_MONITOR_COPROCESSOR      (1 << 1)
