@@ -32,8 +32,8 @@ SECTIONS {
     _prog_break_begin = .;
 
 
-    _special_pages = 0xfffffffffffff000;
-    _phys_window_page = _special_pages;
+    _special_pages = 0xffffffffffffe000;
+    _phys_window_pages = _special_pages;
 
     _special_pages -= 0x1000;
     _phys_window_pt = _special_pages;

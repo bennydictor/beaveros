@@ -7,6 +7,8 @@
 #include <math.h>
 #include <mapper.h>
 #include <gdt.h>
+#include <acpi.h>
+#include <acpi/mcfg.h>
 #include <isr/idt.h>
 #include <isr/apic.h>
 #include <sched.h>
@@ -103,8 +105,23 @@ int main(uint64_t used_mem) {
     isr_init();
     apic_init();
 
-    for(uint64_t i = 0; i < 10; i++) {
-        start_task(test_task, (void *) i, 0);
+    if (!find_sdt()) {
+        PANIC("can't find SDT\n");
     }
-    main_loop();
+
+    find_madt();
+
+    size_t mcfg_cba_bs = 0;
+    mcfg_conf_base_addr_t *mcfg_cbas = NULL;
+    size_t mcfg_cba_cnt = find_mcfg(&mcfg_cbas, &mcfg_cba_bs);
+    printf("Found MCFG\n");
+    for (size_t i = 0; i < mcfg_cba_cnt; ++i) {
+        printf("CSBAAS: base=%.16lx pci_group=%.4x"
+                " start=%.2x end=%.2x\n",
+                mcfg_cbas[i].base,
+                mcfg_cbas[i].pci_group,
+                mcfg_cbas[i].start,
+                mcfg_cbas[i].end);
+    }
+    intloop();
 }

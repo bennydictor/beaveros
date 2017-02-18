@@ -4,7 +4,7 @@ OBJ                     := obj
 ISO                     := iso
 
 QEMU                    := qemu-system-x86_64
-QEMUFLAGS               := -drive format=raw,file=$(IMAGE)
+QEMUFLAGS               := -machine q35 -drive format=raw,file=$(IMAGE)
 
 CFLAGS                  := -std=gnu99 -Wall -Wextra -Wshadow -ffreestanding
 ASFLAGS                 := -DASSEMBLER
