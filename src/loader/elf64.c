@@ -79,12 +79,12 @@ bool load_kernel(void *start, uint64_t *entry) {
     }
 
     uint64_t phys_window_pages = 0;
-    uint32_t phys_windows = 0;
+    uint32_t phys_window_size = 0;
     uint64_t phys_window_pt = 0;
 
     for (uint32_t si = 1; si < symtab_size; ++si) {
-        if (!strcmp("_phys_windows", strtab + symtab[si].st_name)) {
-            phys_windows = symtab[si].st_value;
+        if (!strcmp("_phys_window_size", strtab + symtab[si].st_name)) {
+            phys_window_size = symtab[si].st_value;
         }
         if (!strcmp("_phys_window_pages", strtab + symtab[si].st_name)) {
             phys_window_pages = symtab[si].st_value;
@@ -99,8 +99,8 @@ bool load_kernel(void *start, uint64_t *entry) {
         return false;
     }
 
-    if (!phys_windows) {
-        printf("_phys_windows not found\n");
+    if (!phys_window_size) {
+        printf("_phys_window_size not found\n");
         return false;
     }
 
@@ -109,7 +109,7 @@ bool load_kernel(void *start, uint64_t *entry) {
         return false;
     }
 
-    for (uint32_t wi = 0; wi < phys_windows; ++wi) {
+    for (uint32_t wi = 0; wi < phys_window_size; ++wi) {
         map_page(phys_window_pages + (wi << 12), 0, PAGE_RW_BIT | PAGE_G_BIT);
     }
     map_page(phys_window_pt,
