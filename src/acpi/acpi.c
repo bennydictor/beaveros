@@ -66,7 +66,7 @@ char find_sdt(void) {
 }
 
 size_t find_acpi_table(char sign[4], void ***ptrs, size_t *size) {
-    PHYS_LOOK(sdt);
+    phys_look((void *) sdt);
     size_t entry_size = 4 << xsdt;
     size_t entries = (PHYS_WINDOW(acpi_table_header_t)->length -
             sizeof(acpi_table_header_t)) / entry_size;
@@ -80,7 +80,7 @@ size_t find_acpi_table(char sign[4], void ***ptrs, size_t *size) {
         } else {
             addr = *(uint64_t *) addr_ptr;
         }
-        PHYS_LOOK(addr);
+        phys_look((void *) addr);
         if (strncmp(sign, PHYS_WINDOW(char), 4) == 0) {
             if (*size == 0) {
                 *ptrs = malloc(8);
@@ -91,7 +91,7 @@ size_t find_acpi_table(char sign[4], void ***ptrs, size_t *size) {
             }
             (*ptrs)[cur_size++] = (void *) addr;
         }
-        PHYS_LOOK(sdt);
+        phys_look((void *) sdt);
     }
     return cur_size;
 }

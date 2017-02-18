@@ -36,22 +36,11 @@ typedef uint64_t page_table_entry_t;
 
 #define MAP_ANON        NULL
 
-#define PHYS_WINDOW(TYPE) ((TYPE *) phys_window_addr)
-#define PHYS_LOOK(X) ({ \
-    phys_window_addr = (void *) 0xffffffffffffe000 + (((uint64_t) X) \
-            & ~PAGE_ADDR_BITS); \
-    phys_window_pt[510] = \
-            (((uint64_t) X) & PAGE_ADDR_BITS) | \
-                PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT; \
-    phys_window_pt[511] = \
-            ((((uint64_t) X) & PAGE_ADDR_BITS) + 0x1000) | \
-                PAGE_P_BIT | PAGE_RW_BIT | PAGE_G_BIT; \
-    asm volatile ("invlpg (%0)"::"r"(0xffffffffffffe000)); \
-    asm volatile ("invlpg (%0)"::"r"(0xfffffffffffff000)); \
-})
+#define PHYS_WINDOW(TYPE) ((TYPE *) _phys_window)
 
-extern void *phys_window_addr;
-extern page_table_entry_t *const phys_window_pt;
+extern void *_phys_window;
+
+void phys_look(void *phys);
 
 void mapper_init(void);
 void add_phys_mem(void *phys_mem_start, size_t length);

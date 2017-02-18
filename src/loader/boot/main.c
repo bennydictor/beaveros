@@ -54,6 +54,5 @@ void loader_main(uint32_t eax, uint32_t ebx) {
     }
 
     setup_identity_paging();
-
     enable_long_mode(kernel_entry, ebx, get_used_memory());
 }

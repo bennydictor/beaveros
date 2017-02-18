@@ -25,7 +25,7 @@ size_t find_mcfg(mcfg_conf_base_addr_t **bases, size_t *size) {
     if (ptr_cnt != 1) {
         PANIC("Found %zd MCFG(s), expected 1", ptr_cnt);
     }
-    PHYS_LOOK(*mcfg_ptrs);
+    phys_look(*mcfg_ptrs);
     size_t cnt = (PHYS_WINDOW(mcfg_t)->length - sizeof(mcfg_t)) /
             sizeof(mcfg_conf_base_addr_t);
     if (*size == 0) {
@@ -37,7 +37,7 @@ size_t find_mcfg(mcfg_conf_base_addr_t **bases, size_t *size) {
     }
     mcfg_conf_base_addr_t *addr = (void *) (*mcfg_ptrs + 1);
     for (size_t i = 0; i < cnt; ++i, ++addr) {
-        PHYS_LOOK(addr);
+        phys_look(addr);
         (*bases)[i] = *PHYS_WINDOW(mcfg_conf_base_addr_t);
         ++addr;
     }

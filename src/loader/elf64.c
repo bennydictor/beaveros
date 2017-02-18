@@ -4,9 +4,6 @@
 #include <string.h>
 #include <math.h>
 
-/* TODO: read physical window address from kernel elf */
-#define PHYS_WINDOW 0xffffffffffffe000ULL
-
 bool load_kernel(void *start, uint64_t *entry) {
     elf64_ehdr_t *ehdr = start;
     if (ehdr->e_ident[EI_MAG0] != 0x7f ||
@@ -55,10 +52,67 @@ bool load_kernel(void *start, uint64_t *entry) {
         }
     }
 
-    /* FIXME: this looks so buggy... */
-    map_page(PHYS_WINDOW, 0, PAGE_RW_BIT | PAGE_G_BIT);
-    map_page(PHYS_WINDOW + 0x1000, 0, PAGE_RW_BIT | PAGE_G_BIT);
-    map_page(PHYS_WINDOW - 0x1000,
+    /* parsing section header table */
+    elf64_shdr_t *shdr = start + ehdr->e_shoff;
+    char *shstr = start + shdr[ehdr->e_shstrndx].sh_offset;
+    char *strtab = NULL;
+    elf64_sym_t *symtab = NULL;
+    uint32_t symtab_size = 0;
+    for (uint16_t si = 0; si < ehdr->e_shnum; ++si) {
+        if (!strcmp(".strtab", shstr + shdr[si].sh_name)) {
+            strtab = start + shdr[si].sh_offset;
+        }
+        if (!strcmp(".symtab", shstr + shdr[si].sh_name)) {
+            symtab = start + shdr[si].sh_offset;
+            symtab_size = shdr[si].sh_size / shdr[si].sh_entsize;
+        }
+    }
+
+    if (!strtab) {
+        printf(".strtab not found\n");
+        return false;
+    }
+
+    if (!symtab) {
+        printf(".symtab not found\n");
+        return false;
+    }
+
+    uint64_t phys_window_pages = 0;
+    uint32_t phys_window_size = 0;
+    uint64_t phys_window_pt = 0;
+
+    for (uint32_t si = 1; si < symtab_size; ++si) {
+        if (!strcmp("_phys_window_size", strtab + symtab[si].st_name)) {
+            phys_window_size = symtab[si].st_value;
+        }
+        if (!strcmp("_phys_window_pages", strtab + symtab[si].st_name)) {
+            phys_window_pages = symtab[si].st_value;
+        }
+        if (!strcmp("_phys_window_pt", strtab + symtab[si].st_name)) {
+            phys_window_pt = symtab[si].st_value;
+        }
+    }
+
+    if (!phys_window_pages) {
+        printf("_phys_window_pages not found\n");
+        return false;
+    }
+
+    if (!phys_window_size) {
+        printf("_phys_window_size not found\n");
+        return false;
+    }
+
+    if (!phys_window_pt) {
+        printf("_phys_window_pt not found\n");
+        return false;
+    }
+
+    for (uint32_t wi = 0; wi < phys_window_size; ++wi) {
+        map_page(phys_window_pages + (wi << 12), 0, PAGE_RW_BIT | PAGE_G_BIT);
+    }
+    map_page(phys_window_pt,
             (uint32_t) get_used_memory() - 0x1000, PAGE_RW_BIT | PAGE_G_BIT);
 
     return true;
