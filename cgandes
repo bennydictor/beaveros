@@ -1,0 +1,8 @@
+s#acpi.h#acpi/acpi.h#
+s#heap.h#data/heap.h#
+s#queue.h#data/queue.h#
+s#dlmalloc_config.h#memory/dlmalloc_config.h#
+s#malloc.h#memory/malloc.h#
+s#mapper.h#memory/mapper.h#
+s#mutex.h#threading/mutex.h#
+s#spinlock.h#threading/spinlock.h#

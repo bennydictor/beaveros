@@ -1,7 +1,7 @@
 #include <gdt.h>
 #include <terminate.h>
 #include <string.h>
-#include <mapper.h>
+#include <memory/mapper.h>
 
 extern void *_gdt_page;
 extern void *_isr_stack_top;

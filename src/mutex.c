@@ -1,5 +1,5 @@
-#include <queue.h>
-#include <mutex.h>
+#include <data/queue.h>
+#include <threading/mutex.h>
 #include <sched.h>
 
 void mutex_lock(mutex_t *mutex) {

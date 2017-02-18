@@ -1,9 +1,9 @@
 #include <string.h>
-#include <malloc.h>
-#include <mapper.h>
+#include <memory/malloc.h>
+#include <memory/mapper.h>
 #include <sched.h>
 #include <cpu.h>
-#include <heap.h>
+#include <data/heap.h>
 #include <isr/apic.h>
 
 #define SAVE_MODE_FXSAVE_LAZY    0

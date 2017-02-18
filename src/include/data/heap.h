@@ -2,7 +2,7 @@
 #define BEAVER_HEAP_H
 
 #include <stddef.h>
-#include <spinlock.h>
+#include <threading/spinlock.h>
 
 typedef struct {
     void **data;

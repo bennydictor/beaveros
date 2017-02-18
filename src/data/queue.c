@@ -1,5 +1,5 @@
-#include <queue.h>
-#include <malloc.h>
+#include <data/queue.h>
+#include <memory/malloc.h>
 
 void enqueue(queue_t *q, void *e) {
     queue_item_t *item = malloc(sizeof(queue_item_t));

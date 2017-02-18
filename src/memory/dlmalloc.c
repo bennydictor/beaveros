@@ -9,7 +9,7 @@
            ftp://gee.cs.oswego.edu/pub/misc/malloc.c
          Check before installing!
 */
-#include <malloc.h>
+#include <memory/malloc.h>
 
 /*------------------------------ internal #includes ---------------------- */
 
@@ -796,7 +796,7 @@ typedef unsigned int flag_t;           /* The type of various bit flag sets */
 #define MIN_CHUNK_SIZE\
   ((MCHUNK_SIZE + CHUNK_ALIGN_MASK) & ~CHUNK_ALIGN_MASK)
 
-/* conversion from malloc headers to user pointers, and back */
+/* conversion from memory/malloc.headers to user pointers, and back */
 #define chunk2mem(p)        ((void*)((char*)(p)       + TWO_SIZE_T_SIZES))
 #define mem2chunk(mem)      ((mchunkptr)((char*)(mem) - TWO_SIZE_T_SIZES))
 /* chunk associated with aligned address A */
