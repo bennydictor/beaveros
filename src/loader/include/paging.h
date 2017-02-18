@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #define BEAVER_MAPPER_H_ONLY_PAGING
-#include "../../include/mapper.h"
+#include "../../include/memory/mapper.h"
 #undef BEAVER_MAPPER_H_ONLY_PAGING
 
 extern page_table_entry_t *pml4;

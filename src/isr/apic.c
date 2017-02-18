@@ -3,7 +3,7 @@
 #include <cpu.h>
 #include <stdint.h>
 #include <terminate.h>
-#include <mapper.h>
+#include <memory/mapper.h>
 #include <io/port.h>
 
 extern void *_apic_page;

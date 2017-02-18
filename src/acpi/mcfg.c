@@ -1,10 +1,9 @@
 #include <acpi/mcfg.h>
-#include <acpi.h>
+#include <acpi/acpi.h>
 #include <terminate.h>
 #include <io/printf.h>
-#include <mapper.h>
-#include <malloc.h>
-#include <debug.h>
+#include <memory/mapper.h>
+#include <memory/malloc.h>
 
 typedef struct {
     char signature[4];

@@ -5,9 +5,9 @@
 #include <cpu.h>
 #include <terminate.h>
 #include <math.h>
-#include <mapper.h>
+#include <memory/mapper.h>
 #include <gdt.h>
-#include <acpi.h>
+#include <acpi/acpi.h>
 #include <acpi/mcfg.h>
 #include <isr/idt.h>
 #include <isr/apic.h>

@@ -1,5 +1,5 @@
 #include <isr/idt.h>
-#include <mapper.h>
+#include <memory/mapper.h>
 #include <string.h>
 #include <cpu.h>
 #include <terminate.h>

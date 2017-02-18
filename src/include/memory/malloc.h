@@ -24,7 +24,7 @@
   excerpts from this file needed for using this malloc on ANSI C/C++
   systems, so long as you haven't changed compile-time options about
   naming and tuning parameters.  If you do, then you can create your
-  own malloc.h that does include all settings by cutting at the point
+  own memory/malloc.h that does include all settings by cutting at the point
   indicated below. Note that you may already by default be using a C
   library containing a malloc that is based on some version of this
   malloc (for example in linux). You might still want to use the one
@@ -99,7 +99,7 @@
 
        If you don't like either of these options, you can define
        CORRUPTION_ERROR_ACTION and USAGE_ERROR_ACTION to do anything
-       else. And if if you are sure that your program using malloc has
+       else. And if if you are sure that your program using memory/malloc.has
        no errors or vulnerabilities, you can define INSECURE to 1,
        which might (or might not) provide a small performance improvement.
 
@@ -182,7 +182,7 @@
   ignored.
 
   For a longer but out of date high-level description, see
-     http://gee.cs.oswego.edu/dl/html/malloc.html
+     http://gee.cs.oswego.edu/dl/html/memory/malloc.html
 
 * MSPACES
   If MSPACES is defined, then in addition to malloc, free, etc.,
@@ -525,7 +525,7 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 #ifndef BEAVER_MALLOC_H
 #define BEAVER_MALLOC_H
 
-#include <dlmalloc_config.h>
+#include <memory/dlmalloc_config.h>
 #ifndef DLMALLOC_VERSION
 #define DLMALLOC_VERSION 20806
 #endif /* DLMALLOC_VERSION */
@@ -721,7 +721,7 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 
 /*
   mallopt tuning options.  SVID/XPG defines four standard parameter
-  numbers for mallopt, normally defined in malloc.h.  None of these
+  numbers for mallopt, normally defined in memory/malloc.h.  None of these
   are used in this malloc, so setting them has no effect. But this
   malloc does support the following options.
 */
@@ -737,7 +737,7 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
   This version of malloc supports the standard SVID/XPG mallinfo
   routine that returns a struct containing usage properties and
   statistics. It should work on any system that has a
-  /usr/include/malloc.h defining struct mallinfo.  The main
+  /usr/include/memory/malloc.h defining struct mallinfo.  The main
   declaration needed is the mallinfo struct that is returned (by-copy)
   by mallinfo().  The malloinfo struct contains a bunch of fields that
   are not even meaningful in this version of malloc.  These fields are
@@ -745,7 +745,7 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
   interest.
 
   HAVE_USR_INCLUDE_MALLOC_H should be set if you have a
-  /usr/include/malloc.h file that includes a declaration of struct
+  /usr/include/memory/malloc.h file that includes a declaration of struct
   mallinfo.  If so, it is included; else a compliant version is
   declared below.  These must be precisely the same for mallinfo() to
   work.  The original SVID version of this struct, defined on most
@@ -758,7 +758,7 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 /* #define HAVE_USR_INCLUDE_MALLOC_H */
 
 #ifdef HAVE_USR_INCLUDE_MALLOC_H
-#include "/usr/include/malloc.h"
+#include "/usr/include/memory/malloc.h"
 #else /* HAVE_USR_INCLUDE_MALLOC_H */
 #ifndef STRUCT_MALLINFO_DECLARED
 /* HP-UX (and others?) redefines mallinfo unless _STRUCT_MALLINFO is defined */
@@ -954,7 +954,7 @@ DLMALLOC_EXPORT void* dlvalloc(size_t);
   maximum unsigned size_t value.
 
   SVID/XPG/ANSI defines four standard param numbers for mallopt,
-  normally defined in malloc.h.  None of these are use in this malloc,
+  normally defined in memory/malloc.h.  None of these are use in this malloc,
   so setting them has no effect. But this malloc also supports other
   options in mallopt. See below for details.  Briefly, supported
   parameters are as follows (listed defaults are for "typical"

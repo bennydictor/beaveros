@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include <mapper.h>
-#include <malloc.h>
+#include <memory/mapper.h>
+#include <memory/malloc.h>
 
 extern void *_first_mb;
 static char *first_mb = (void *) &_first_mb;

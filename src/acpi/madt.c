@@ -1,9 +1,9 @@
-#include <acpi.h>
+#include <acpi/acpi.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <terminate.h>
 #include <io/printf.h>
-#include <malloc.h>
+#include <memory/malloc.h>
 
 typedef struct {
     char signature[4];

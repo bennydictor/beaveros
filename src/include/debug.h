@@ -3,6 +3,8 @@
 
 #include <terminate.h>
 
+#warning using debug.h
+
 #define DEBUG_BREAKPOINT ({ \
     printf("hOI!!!!!! I'm bREAKPOINT!!\n"); \
     terminate(); \

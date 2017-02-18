@@ -1,6 +1,5 @@
-#include <heap.h>
-#include <malloc.h>
-#include <debug.h>
+#include <data/heap.h>
+#include <memory/malloc.h>
 
 min_heap_t *make_heap(int (*cmp)(void *, void *)) {
     min_heap_t *h = malloc(sizeof(min_heap_t));
