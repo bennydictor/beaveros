@@ -5,66 +5,7 @@
 #include <io/printf.h>
 #include <memory/malloc.h>
 #include <memory/mapper.h>
-
-typedef struct {
-    char signature[4];
-    uint32_t length;
-    uint8_t revision;
-    uint8_t checksum;
-    char oemid[6];
-    uint64_t oem_table_id;
-    uint32_t oem_revision;
-    uint32_t creator_id;
-    uint32_t creator_revision;
-    uint32_t local_controller_address;
-    uint32_t flags;
-} __attribute__((packed)) madt_t;
-
-typedef struct {
-    uint8_t type;
-    uint8_t lentgh;
-} __attribute__((packed)) madt_entry_header_t;
-
-typedef struct {
-    uint8_t type;
-    uint8_t length;
-    uint8_t proc_uid;
-    uint8_t apic_id;
-    uint32_t flags;
-} __attribute__((packed)) processor_lapic_t;
-
-typedef struct {
-    uint8_t type;
-    uint8_t length;
-    uint8_t ioapic_id;
-    uint8_t rsvd;
-    uint32_t ioapic_addr;
-    uint32_t global_system_interrupt_base;
-} __attribute__((packed)) ioapic_t;
-
-typedef struct {
-    uint8_t type;
-    uint8_t length;
-    uint8_t bus;
-    uint8_t source;
-    uint32_t global_system_interrupt;
-    uint16_t flags;
-} __attribute__((packed)) interrupt_source_override_t;
-
-typedef struct {
-    uint8_t type;
-    uint8_t length;
-    uint16_t flags;
-    uint32_t global_system_interrupt;
-} __attribute__((packed)) nmi_source_t;
-
-typedef struct {
-    uint8_t type;
-    uint8_t length;
-    uint8_t proc_uid;
-    uint16_t flags;
-    uint8_t lapic_lint;
-} __attribute__((packed)) lapic_nmi_t;
+#include <acpi/madt.h>
 
 void find_madt(void) {
     madt_t **madt_ptrs = NULL;
@@ -90,14 +31,34 @@ void find_madt(void) {
         printf("Entry type %d, length %d\n", ptr->type, ptr->lentgh);
 
         switch (ptr->type) {
-        case 0: {
-            processor_lapic_t *p = madt_iter;
-            printf(">>> Processor Local APIC\n"
-                   ">>> UID = %d\n"
-                   ">>> APIC ID = %d\n"
-                   ">>> Flags = %x\n",
-                   p->proc_uid, p->apic_id, p->flags);
-            break;
+        case PROCESSOR_LAPIC_TYPE: {
+                processor_lapic_t *p = madt_iter;
+                printf(">>> Processor Local APIC\n"
+                       ">>> UID = %d\n"
+                       ">>> APIC ID = %d\n"
+                       ">>> Flags = %#.8x\n",
+                       p->proc_uid, p->apic_id, p->flags);
+                break;
+            }
+        case INTERRUPT_SOURCE_OVERRIDE_TYPE: {
+                interrupt_source_override_t *p = madt_iter;
+                printf(">>> Interrupt Source Override\n"
+                       ">>> Bus = %d\n"
+                       ">>> Source = %d\n"
+                       ">>> Global System Interrupt = %d\n"
+                       ">>> Flags = %#.8x\n",
+                       p->bus, p->source,
+                       p->global_system_interrupt, p->flags);
+                break;
+            }
+        case LAPIC_NMI_TYPE: {
+                lapic_nmi_t *p = madt_iter;
+                printf(">>> Local APIC NMI\n"
+                       ">>> ACPI Processor UID = %d\n"
+                       ">>> Flags = %#.8x\n"
+                       ">>> Local APIC LINT# = %d\n",
+                       p->proc_uid, p->flags, p->lapic_lint);
+                break;
             }
         }
 
