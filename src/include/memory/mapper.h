@@ -40,7 +40,7 @@ typedef uint64_t page_table_entry_t;
 
 extern void *_phys_window;
 
-void phys_look(void *phys);
+void *phys_look(void *phys);
 
 void mapper_init(void);
 void add_phys_mem(void *phys_mem_start, size_t length);

@@ -20,7 +20,7 @@ void *_phys_window;
 static page_table_entry_t *pml4;
 static page_header_t *first_free_block;
 
-void phys_look(void *phys) {
+void *phys_look(void *phys) {
     uint64_t aligned_phys = PAGE_ADDR_BITS & (uint64_t) phys;
     for (uint64_t i = 0; i < phys_window_size; ++i) {
         phys_window_pt[512 - phys_window_size + i] =
@@ -28,6 +28,7 @@ void phys_look(void *phys) {
         asm volatile ("invlpg (%0)"::"r"((void *) &_phys_window_pages + (i << 12)));
     }
     _phys_window = (uint64_t) phys - aligned_phys + (void *) &_phys_window_pages;
+    return _phys_window;
 }
 
 void mapper_init(void) {
